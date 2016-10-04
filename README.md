@@ -13,7 +13,12 @@ Pandora Data Capture
 5. Add Git Perspective
 
 ## The other way to do it
+
 1. Start up ECLIPSE with working directory C:\ECLIPSEWORKSPACE
-2. ...
+2. Select Import (right click in project explorer)
+3. Select Other and write git
+4. Select Clone URL
+5. Select the location to store the file (does not have ot be in eclipse working directory, could be dropbox)
+6. Create server with Apache Tomcat 8
 
 
