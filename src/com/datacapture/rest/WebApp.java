@@ -32,7 +32,7 @@ import static java.util.concurrent.TimeUnit.*;
 public class WebApp {
 	
 	//Connection version 
-	public static final String strVersion = 		"2.0.5.1b-2";
+	public static final String strVersion = 		"2.0.5.2";
 
 	// If the last last 'z' in x.y.z is different than the in app, then a forced update of app is required of the phone/tablet
 	public static final String strVersion_release = "2.0.5";
@@ -43,7 +43,6 @@ public class WebApp {
 	// Test environment
 //	public static final String dbURL = "jdbc:sqlserver://217.157.143.212:49170;databaseName=pandoradatacapture;user=flowline;password=123";
 	public static final String dbURL = "jdbc:sqlserver://localhost:49170;databaseName=pandoradatacapture;user=flowline;password=123";
-
 
 	// There are problems with this (it seems to work also, JEH) //USE THIS ONE FOR SERVER
 //	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;integratedSecurity=true";
