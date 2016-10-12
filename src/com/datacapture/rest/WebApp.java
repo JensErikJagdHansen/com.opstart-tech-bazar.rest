@@ -130,6 +130,8 @@ public class WebApp {
 	private static final String strSQL_jobnr_sequences = "SELECT [330_standard_sequences].*, [320_operations].OperationDescription_EN, [320_operations].OperationDescription_TH "
 													+" FROM [320_operations] INNER JOIN [330_standard_sequences] ON [320_operations].OperationID = [330_standard_sequences].OperationID where ItemID = ? and SequenceType=1 order by OperationNr ";
 	
+	private static final String strSQL_jobnr_sequnces_rework =  "select * from [415_Sequences] where ItemID= ? and SequenceType = 1 order by DefectTypeID, SortID";
+
 	
 	private static final String strSQL_sequence = "SELECT [330_standard_sequences].*, [320_operations].OperationDescription_EN, [320_operations].OperationDescription_TH "
 			+" FROM [320_operations] INNER JOIN [330_standard_sequences] ON [320_operations].OperationID = [330_standard_sequences].OperationID where SequenceID = ? order by OperationNr ";
@@ -139,9 +141,6 @@ public class WebApp {
 	private static final String strSQL_jobnr_baskets = "SELECT * from [610_baskets] where  basketstatus > 0 and  basketstatus<6  and JobNr like ? order by OperationID, DateTime_Load";
 	
 	//Sequences
-	private static final String strSQL_sequences_standard = "SELECT [330_standard_sequences].*, OperationDescription_EN, OperationDescription_TH FROM [320_operations] INNER JOIN [330_standard_sequences] ON [320_operations].OperationID = [330_standard_sequences].OperationID  where ItemID = ? order by OperationNr";
-	private static final String strSQL_sequences_rework = "SELECT [420_rework_sequences].*, OperationDescription_EN, OperationDescription_TH FROM [420_rework_sequences] INNER JOIN [320_operations] ON [420_rework_sequences].OperationID = [320_operations].OperationID   where DefectTypeID = ? order by OperationNr";
-	private static final String strSQL_sequences_defecttype = "SELECT * from [410_defect_types] where DefectTypeID = ? ";
 	private static final String strSQL_sequences_defecttypes = "Select * from [410_defect_types] order by sortID ";
 	
 	//Standard time
@@ -669,6 +668,7 @@ public class WebApp {
 		JSONArray ja_item = new JSONArray();
 		JSONObject jo_out = new JSONObject();
 		JSONArray ja_sequence_steps = new JSONArray();
+		JSONArray ja_rework = new JSONArray();
 		
 
 		// find the item ID from the job nr. Look up in table "520_LoadPlan" 
@@ -688,11 +688,15 @@ public class WebApp {
 				// Put everything into return object
 				if (ja_sequence_steps.length()>0){
 					
-					jo_out.put("Steps",ja_sequence_steps);
-					return Response.ok(jo_out.toString(1)).build();
+					jo_out.put("Standard Sequence",ja_sequence_steps);
 				}
+				ja_rework  =  JSONHelper.json_db("q",strSQL_jobnr_sequnces_rework, 1, strItemID);
+				jo_out.put("Rework Sequences",ja_rework);
+				return Response.ok(jo_out.toString(1)).build();
 			}
 		}
+
+		
 		
 		// return error code if not found
 		JSONArray Msg = JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"jobnr_not_found");		
@@ -790,7 +794,7 @@ public class WebApp {
 		
 		// Find the sequence information  
 		if (ja.length()>0 ) {
-			jo_out.put("Steps", ja);
+			jo_out.put("Sequence", ja);
 			return Response.ok(jo_out.toString(1)).build();
 		}
 		
