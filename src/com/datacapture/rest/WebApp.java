@@ -1,7 +1,7 @@
 package com.datacapture.rest;
 
 
-// Version 2016.10.05 14.30
+// Version 2016.09.21 14.30
 
 
 import java.sql.Connection;
@@ -43,6 +43,7 @@ public class WebApp {
 	// Test environment
 //	public static final String dbURL = "jdbc:sqlserver://217.157.143.212:49170;databaseName=pandoradatacapture;user=flowline;password=123";
 	public static final String dbURL = "jdbc:sqlserver://localhost:49170;databaseName=pandoradatacapture;user=flowline;password=123";
+
 
 	// There are problems with this (it seems to work also, JEH) //USE THIS ONE FOR SERVER
 //	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;integratedSecurity=true";
@@ -112,7 +113,7 @@ public class WebApp {
 													+ "DateTime_Unload = getdate(), Last_Update = getdate()  where BasketID = ? AND BasketStatus = 5";
 
 	private static final String strSQL_status_clear_basket = "UPDATE [610_Baskets] SET BasketStatus = 0, ImagUrl = Null, UserID = Null, LineID = Null, WorkbenchID = Null , ItemID =  Null, Load_YearWeek  = Null, Load_Shift = Null,  OperationNr = Null, OperationID=Null , WorkInstruction = Null, "
-									+ "Std_ProcessTime = 0, Std_MachineTime=0,  Last_Update = getdate() , JobNr=Null, SequenceType = 1 , "
+									+ "Std_ProcessTime = 0, Std_MachineTime=0,  Last_Update = getdate() , JobNr=Null, SequenceID = Null, SequenceType = 1 , "
 									+ " Good_Pcs_In = 0, Good_Pcs_Out = 0 , Bad_Pcs_in = 0, Bad_Pcs_Out = 0,  Pause_Time=0, Rework_Time=0 ,Rejected_Pcs_in = 0, Rejected_Pcs_out = 0,  " 
 									+ "Weight_In = 0, Weight_Out = 0, DateTime_Load =Null , DateTime_Start =Null , DateTime_End=Null , DateTime_Unload=Null, OperationMultipla=1  where BasketID = ? ";
 	
@@ -789,38 +790,10 @@ public class WebApp {
 				JSONHelper.json_db("q",strSQL_sequences_defecttypes, 0).toString(1)).build();}
 	
 	
-	
 	@Path("/sequence/rework/{DefectTypeID}")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response return_sequence_rework(@PathParam("DefectTypeID") String strDefectTypeID) throws Exception {
-
-		// find object for for the defect type
-		JSONObject jo_out  =  JSONHelper.json_db("q",strSQL_sequences_defecttype, 1, strDefectTypeID).getJSONObject(0);
-			
-		// find sequence from item ID. Look up in table "420_rework_sequences" 
-		JSONArray ja  =  JSONHelper.json_db("q",strSQL_sequences_rework, 1, strDefectTypeID);
-
-		
-		// Find the product information. Put into object ja_out. Look up in table "310_Product"  
-		if (ja.length()>0 ) {
-
-			jo_out.put("Steps", ja);
-			return Response.ok(jo_out.toString(1)).build();}
-		
-		// return error code if not found
-		JSONArray Msg = JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"sequence_not_found_rework");	
-		String str = Msg.getJSONObject(0).toString(1).replace("??", strDefectTypeID);
-		return Response.status(404).entity(str).build();
-	}
-	
-	
-	//jens
-	
-	@Path("/sequence/defecttypes/item/{ItemID}")
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response return_defecttypes_item(@PathParam("ItemID") String strDefectTypeID) throws Exception {
 
 		// find object for for the defect type
 		JSONObject jo_out  =  JSONHelper.json_db("q",strSQL_sequences_defecttype, 1, strDefectTypeID).getJSONObject(0);
@@ -1299,7 +1272,7 @@ public class WebApp {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------	
 // Support functions
 	
-	// Help functions
+	// Help funktions
 
 	private static class Basket_Helper {
 		
@@ -1498,9 +1471,8 @@ public class WebApp {
 			for (int i=0;i<Target.length();i++) {
 				for (int j=0;j<Source.length();j++){
 					JSONObject jo = Source.getJSONObject(j);
-
 					
-					if ( Target.getJSONObject(i).opt(key) ==  jo.opt(key) ) {
+					if ( Target.getJSONObject(i).optInt(key) ==  jo.optInt(key) ) {
 						for(String key2 : JSONObject.getNames(jo))
 						{
 							Target.getJSONObject(i).put(key2, jo.get(key2));
