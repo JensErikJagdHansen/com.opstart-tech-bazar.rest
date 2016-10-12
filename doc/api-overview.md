@@ -26,8 +26,8 @@ x    GET  /sequence/standard/{ItemID}  (Still OK, but not needed)
 x    GET  /sequence/rework/{DefectTypeID} (will not work, not needed)
     
     
-	 GET  /sequence/{SequenceID} (retunér fuld sekvens)
-	 GET  /sequence/rework_sequence/{ItemID} (retuner alle rework seq for item, excl de enkelte trin, netto liste) 	 (med in job info)
+	 GET  /sequence/rework-steps/{SequenceID} (retunér fuld sekvens)
+	 GET  /sequence/rework-sequences/{temID} (retuner alle rework seq for item, excl de enkelte trin, netto liste) 	 (med in job info)
     POST /sequence/item/
     
     

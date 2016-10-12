@@ -128,7 +128,7 @@ public class WebApp {
 	private static final String strSQL_jobnr_get = "SELECT Top 1 *, FamilyLane=Lane from [520_loadplan] WHERE JobNr = ? ";
 	private static final String strSQL_jobnr_item = "SELECT * from [310_Products] where ItemID = ? ";
 	private static final String strSQL_jobnr_sequences = "SELECT [330_standard_sequences].*, [320_operations].OperationDescription_EN, [320_operations].OperationDescription_TH "
-													+" FROM [320_operations] INNER JOIN [330_standard_sequences] ON [320_operations].OperationID = [330_standard_sequences].OperationID where ItemID = ? order by OperationNr ";
+													+" FROM [320_operations] INNER JOIN [330_standard_sequences] ON [320_operations].OperationID = [330_standard_sequences].OperationID where ItemID = ? and SequenceType=1 order by OperationNr ";
 	private static final String strSQL_jobnr_baskets = "SELECT * from [610_baskets] where  basketstatus > 0 and  basketstatus<6  and JobNr like ? order by OperationID, DateTime_Load";
 	
 	//Sequences
@@ -759,27 +759,8 @@ public class WebApp {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------	
 //	Standard and rework sequences
-		
-	@Path("/sequence/standard/{ItemID}")
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response return_sequence_standard(@PathParam("ItemID") String strItemID) throws Exception {
 
-		// find sequence from item ID. Look up in table "330_standard_sequences" 
-		JSONArray ja  =  JSONHelper.json_db("q",strSQL_sequences_standard, 1, strItemID);
 
-		// Find the product information. Put into object ja_out. Look up in table "310_Product"  
-		if (ja.length()>0 ) {
-
-			String str = ja.toString(1);
-			return Response.ok(str).build();
-		}
-		
-		// return error code if not found
-		JSONArray Msg = JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"sequence_not_found_standard");	
-		String str = Msg.getJSONObject(0).toString(1).replace("??", strItemID);
-		return Response.status(404).entity(str).build();
-	}
 	
 	
 	@Path("/sequence/defecttypes")
