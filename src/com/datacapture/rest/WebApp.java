@@ -136,7 +136,10 @@ public class WebApp {
 	private static final String strSQL_sequence = "SELECT [330_standard_sequences].*, [320_operations].OperationDescription_EN, [320_operations].OperationDescription_TH "
 			+" FROM [320_operations] INNER JOIN [330_standard_sequences] ON [320_operations].OperationID = [330_standard_sequences].OperationID where SequenceID = ? order by OperationNr ";
 	
-	
+	private static final String strSQL_Sequences_MaxSortID = "Select max(sortID) as SortID from [415_sequences] where ItemID = ? and DefectTypeID = ?";
+
+	private static final String strSequence_add = "INSERT INTO [415_sequences] ( SequenceID, SequenceType,  ItemID, DefectTypeID , SequenceDescription_EN, SequenceDescription_TH, SortID ) SELECT  ?,?,?, ?,?,?,? ";
+	public static final String strSequence_steps_add = "Insert into [330_standard_sequences] (SequenceID ,SequenceType,ItemID, OperationNr,OperationID ,WorkInstruction, ProcessTime, MachineTime,WeightControlFlag ,OperationMultipla ) select ?,?,?,  ?,?,?,  ?,?,? ,? ";
 	
 	private static final String strSQL_jobnr_baskets = "SELECT * from [610_baskets] where  basketstatus > 0 and  basketstatus<6  and JobNr like ? order by OperationID, DateTime_Load";
 	
@@ -238,6 +241,9 @@ public class WebApp {
 											+ "FROM [610_Baskets], [880_line_stats_control]  where Load_YearWeek=Current_YearWeek and  DateTime_Start is not null and (BasketStatus=2 or BasketStatus=5) and OperationID is not null ) AS i Group By i.Type, i.LineID, i.UserID, i.opr2ID" ;
 	
 	private static final String strSQL_productivity_target  = "select * from  [210_lines] where LineID =  ? ";
+	
+	
+	
 	
 	
 	//  Statistics update, information for dashboard - manning
@@ -745,7 +751,6 @@ public class WebApp {
 		JSONArray ja_operations = JSONHelper.json_db("q",strSQL_jobnr_overview, 3,strLineID, strJobNr, strItemID);
 		
 		JSONArray ja_operations_total = JSONHelper.json_db("q",strSQL_jobnr_overview_total, 3,strLineID, strJobNr, strItemID);
-
 		
 		JSONObject jo = new JSONObject();
 		JSONArray ja_jobnr  =  JSONHelper.json_db("q",strSQL_jobnr_get, 1, strJobNr);
@@ -783,7 +788,7 @@ public class WebApp {
 	@Path("/sequence/{SequenceID}")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response return_sequencek(@PathParam("SequenceID") String strSequenceID) throws Exception {
+	public Response return_sequence(@PathParam("SequenceID") String strSequenceID) throws Exception {
 
     // current only working for rework sequences
 		JSONObject jo_out = new JSONObject();
@@ -802,6 +807,53 @@ public class WebApp {
 		JSONArray Msg = JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"sequence_not_found_rework");	
 		String str = Msg.getJSONObject(0).toString(1).replace("??", strSequenceID);
 		return Response.status(404).entity(str).build();
+	}
+
+	
+
+	@Path("/sequence/rework/")
+	@POST
+	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response post_rework_sequence(String strInfoKey) throws Exception { 
+		// current only working for rework sequences
+		
+		// Parse the string to json object
+		JSONObject jo_InfoKey = new JSONObject(strInfoKey);
+		String strItemID = jo_InfoKey.optString("ItemID");
+		String strDefectTypeID = jo_InfoKey.optString("DefectTypeID");
+		String strDescpription_EN  = jo_InfoKey.optString("Description_EN");
+		String strDescpription_TH  = jo_InfoKey.optString("Description_TH");
+		
+		
+		JSONArray ja_sequence = jo_InfoKey.getJSONArray("Sequence");
+
+		JSONArray ja_SortID= JSONHelper.json_db("q",strSQL_Sequences_MaxSortID, 2 ,strItemID, strDefectTypeID); 
+		Integer intSortID = ja_SortID.getJSONObject(0).optInt("SortID") + 1;
+		String strSequenceID = "rwk-" + strItemID + "-" + strDefectTypeID + "-" + intSortID;		
+		Integer intSequenceType=2;
+				
+		//create record in table 415_Sequences
+		JSONHelper.json_db("e",strSequence_add, 7 , strSequenceID, intSequenceType, strItemID,  strDefectTypeID,strDescpription_EN, strDescpription_TH, intSortID );
+
+		Integer intOperationNr;
+		String strOperationID;
+		String strWorkInstruction;
+		JSONObject jo = new JSONObject() ;
+		
+		//Insert the steps into 330_standard_sequences
+		for (int i=0;i<ja_sequence.length();i++ ) {
+
+			jo = ja_sequence.getJSONObject(i);
+			intOperationNr  = jo.optInt("OperationNr");
+			strOperationID = jo.optString("OperationID");
+			strWorkInstruction = jo.optString("WorkInstruction");
+			
+			JSONHelper.json_db("e",strSequence_steps_add, 10 ,strSequenceID, intSequenceType, strItemID, intOperationNr,strOperationID ,strWorkInstruction, 0 , 0 , 0 ,1 );
+		
+		}
+		
+		return return_sequence(strSequenceID) ;
 	}
 
 	

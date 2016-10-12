@@ -19,18 +19,9 @@
     POST /job/overview/<OverView>
     
 ## Sequences
-x    GET  /sequence/standard/{ItemID}  (Still OK, but not needed)
-    
-    GET  /sequence/defecttypes (Still OK) 
-    
-x    GET  /sequence/rework/{DefectTypeID} (will not work, not needed)
-    
-	 GET  /sequence/{SequenceID}        (retunér fuld sekvens)
-
-
-
-	 GET  /sequence/all-rework/{temID} (retuner alle rework seq for item, excl de enkelte trin, netto liste) 	 (med in job info)
-    POST /sequence/item/
+    GET  /sequence/defecttypes  
+    GET  /sequence/{SequenceID}        
+    POST /sequence/item/<sequence>
     
     
 ## Other stuff
