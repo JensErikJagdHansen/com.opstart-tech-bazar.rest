@@ -77,7 +77,7 @@ public class WebApp {
 	private static final String strSQL_UserName  = "Select UserName from [110_Users] where UserID = ? "; 
 	private static final String strSQL_operation_description  = "Select OperationDescription_EN, OperationDescription_TH from [320_operations] where OperationID = ? ";
 	
-	private static final String strSQL_status_load  = "UPDATE [610_Baskets] SET ImagUrl = ?, LineID = ?, JobNr = ?, ItemID=?, OperationNr = ?, OperationID = ?, WorkInstruction = ?, SequenceType = ?, DefectTypeID = ?, BasketStatus = ?, UserID = ?, " 
+	private static final String strSQL_status_load  = "UPDATE [610_Baskets] SET ImagUrl = ?, LineID = ?, JobNr = ?, ItemID=?, OperationNr = ?, OperationID = ?, WorkInstruction = ?, SequenceType = ?, SequenceID = ?, DefectTypeID = ?, BasketStatus = ?, UserID = ?, " 
 													+ "WorkbenchID = ?, Std_ProcessTime = ?,  Std_MachineTime = ?, Good_Pcs_In = ?, Good_Pcs_Out = ?, Bad_Pcs_In = ?,  Bad_Pcs_Out = ?, Rejected_Pcs_In =? , Rejected_Pcs_Out = ?, Weight_In = ?, Weight_Out = ?, "
 													+ "DateTime_Load = getdate(), DateTime_Start = null, DateTime_End=null, DateTime_Unload = null, "
 													+ "Pause_Time = 0, Rework_Time = 0, Pause_Count = 0, Rework_Count = 0 , Last_Update =   getdate(),  " 
@@ -578,7 +578,7 @@ public class WebApp {
 			intLoad_Shift = ja_current.getJSONObject(0).optInt("Current_Shift");
 			
 			// Load the basket. Update record in "610_basket_status"			
-			ja = JSONHelper.json_db("e",strSQL_status_load, 26, strImagUrl, strLineID, strJobNr, strItemID, intOperationNr, strOperationID, strWorkInstruction, intSequenceType, strDefectTypeID, 1, strUserID, 
+			ja = JSONHelper.json_db("e",strSQL_status_load, 27, strImagUrl, strLineID, strJobNr, strItemID, intOperationNr, strOperationID, strWorkInstruction, intSequenceType, strSequenceID, strDefectTypeID, 1, strUserID, 
 					strWorkbenchID, dblStdProcessTime, dblStdMachineTime, intGood_Pcs_In ,intGood_Pcs_In,  intBad_Pcs_In,  intBad_Pcs_In, intRejected_Pcs_In, intRejected_Pcs_Out, dblWeight_In ,  dblWeight_Out , strLoad_YearWeek, intLoad_Shift, intOperationMultipla, strBasketID);
 			
 			JSONHelper.json_db("e",strSQL_load_JobNr_initiate,1,strJobNr);
@@ -643,7 +643,7 @@ public class WebApp {
 			intLoad_Shift = ja_current.getJSONObject(0).optInt("Current_Shift");
 			
 			// Load the basket. Update record in "610_baskets"			
-			ja = JSONHelper.json_db("e",strSQL_status_load, 26, strImagUrl, strLineID, strJobNr, strItemID, intOperationNr, strOperationID, strWorkInstruction, intSequenceType, strDefectTypeID, 1, strUserID, 
+			ja = JSONHelper.json_db("e",strSQL_status_load, 27, strImagUrl, strLineID, strJobNr, strItemID, intOperationNr, strOperationID, strWorkInstruction, intSequenceType, strSequenceID, strDefectTypeID, 1, strUserID, 
 					strWorkbenchID, dblStdProcessTime, dblStdMachineTime, intGood_Pcs_Out , intGood_Pcs_Out,  intBad_Pcs_Out,  intBad_Pcs_Out ,intRejected_Pcs_Out, intRejected_Pcs_Out,   dblWeight_Out ,  0 , strLoad_YearWeek, intLoad_Shift, intOperationMultipla, strBasketID); 
 
 			break;
