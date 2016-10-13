@@ -692,10 +692,13 @@ public class WebApp {
 				// Put everything into return object
 				if (ja_sequence_steps.length()>0){
 					
-					jo_out.put("Standard Sequence",ja_sequence_steps);
+					JSONObject jo_steps = new JSONObject();
+					jo_steps.put("Steps", ja_sequence_steps);
+					jo_out.put("StandardSequence",jo_steps);
+					//jo_out.put("StandardSequence",ja_sequence_steps);
 				}
 				ja_rework  =  JSONHelper.json_db("q",strSQL_jobnr_sequnces_rework, 1, strItemID);
-				jo_out.put("Rework Sequences",ja_rework);
+				jo_out.put("ReworkSequences",ja_rework);
 				return Response.ok(jo_out.toString(1)).build();
 			}
 		}
