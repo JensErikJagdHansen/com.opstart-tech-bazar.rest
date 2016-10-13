@@ -147,8 +147,8 @@ public class WebApp {
 	private static final String strSQL_sequences_defecttypes = "Select * from [410_defect_types] order by sortID ";
 	
 	//Standard time
-	private static final String strSQL_standard_time_standard = "SELECT *  FROM [330_standard_sequences] WHERE ItemID = ? AND OperationNr = ? ";
-	private static final String strSQL_standard_time_rework = "SELECT *  FROM [420_rework_sequences] WHERE DefectTypeID = ? AND OperationNr = ? ";
+	private static final String strSQL_standard_time_standard = "SELECT *  FROM [330_standard_sequences] WHERE SequenceID= ? AND OperationNr = ? ";
+
 	
 	//Translations and error msg
 	private static final String strSQL_translations_caption = "SELECT * from [910_ui_captions] where Type=1";
@@ -524,8 +524,8 @@ public class WebApp {
 		Integer intBad_Pcs_Out = BasketInfo.optInt("Bad_Pcs_Out");
 		Integer intRejected_Pcs_In = BasketInfo.optInt("Rejected_Pcs_In");
 		Integer intRejected_Pcs_Out = BasketInfo.optInt("Rejected_Pcs_Out");
+		String strSequenceID = BasketInfo.optString("SequenceID");
 
-		
 		
 		
 		double dblWeight_In = BasketInfo.optDouble("Weight_In");
@@ -556,10 +556,8 @@ public class WebApp {
 		
 			// Lookup standard process time and machine time. If standard sequence (1) then look in "300_standard_sequences", else (2) look in "420_rework_seqences" 
 			JSONArray ja_std_time = new JSONArray();
-			if (intSequenceType==1) {
-				ja_std_time = JSONHelper.json_db("q",strSQL_standard_time_standard, 2, strItemID, intOperationNr );}
-			else {
-				ja_std_time = JSONHelper.json_db("q",strSQL_standard_time_rework, 2, strDefectTypeID , intOperationNr); }
+			ja_std_time = JSONHelper.json_db("q",strSQL_standard_time_standard, 2, strSequenceID, intOperationNr );
+
 			if (ja_std_time.length()>0 ) {
 				dblStdProcessTime = ja_std_time.getJSONObject(0).optDouble("ProcessTime");
 				dblStdMachineTime = ja_std_time.getJSONObject(0).optDouble("MachineTime");
