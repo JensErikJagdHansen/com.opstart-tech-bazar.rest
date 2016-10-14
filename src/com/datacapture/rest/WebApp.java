@@ -130,7 +130,7 @@ public class WebApp {
 	private static final String strSQL_jobnr_sequences = "SELECT [330_standard_sequences].*, [320_operations].OperationDescription_EN, [320_operations].OperationDescription_TH "
 													+" FROM [320_operations] INNER JOIN [330_standard_sequences] ON [320_operations].OperationID = [330_standard_sequences].OperationID where ItemID = ? and SequenceType=1 order by OperationNr ";
 	
-	private static final String strSQL_jobnr_sequnces_rework =  "select * from [415_Sequences] where ItemID= ? and SequenceType = 1 order by DefectTypeID, SortID";
+	private static final String strSQL_jobnr_sequnces_rework =  "select * from [415_Sequences] where ItemID= ? and SequenceType = 2  order by DefectTypeID, SortID";
 
 	
 	private static final String strSQL_sequence = "SELECT [330_standard_sequences].*, [320_operations].OperationDescription_EN, [320_operations].OperationDescription_TH "
