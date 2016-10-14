@@ -140,7 +140,7 @@ public class WebApp {
 	private static final String strSQL_Sequences_MaxSortID = "Select max(sortID) as SortID from [415_sequences] where ItemID = ? and DefectTypeID = ?";
 
 	private static final String strSequence_add = "INSERT INTO [415_sequences] ( SequenceID, SequenceType,  ItemID, DefectTypeID , SequenceDescription_EN, SequenceDescription_TH, SortID ) SELECT  ?,?,?, ?,?,?,? ";
-	public static final String strSequence_steps_add = "Insert into [330_standard_sequences] (SequenceID ,SequenceType,ItemID, OperationNr,OperationID ,WorkInstruction, ProcessTime, MachineTime,WeightControlFlag ,OperationMultipla ) select ?,?,?,  ?,?,?,  ?,?,? ,? ";
+	public static final String strSequence_steps_add = "Insert into [330_standard_sequences] (SequenceID ,SequenceType,ItemID, DefectTypeID, OperationNr,OperationID ,WorkInstruction, ProcessTime, MachineTime,WeightControlFlag ,OperationMultipla ) select ?,?,?,  ?,?,?,  ?,?,? ,? ";
 	
 	private static final String strSQL_jobnr_baskets = "SELECT * from [610_baskets] where  basketstatus > 0 and  basketstatus<6  and JobNr like ? order by OperationID, DateTime_Load";
 	
@@ -668,6 +668,7 @@ public class WebApp {
 	public Response return_jobinfo(@PathParam("JobNr") String strJobNr) throws Exception {
 
 		String strItemID = null;
+		String strSequenceID= null;
 
 		JSONArray ja_jobnr = new JSONArray();
 		JSONArray ja_item = new JSONArray();
@@ -696,10 +697,13 @@ public class WebApp {
 					JSONObject jo_steps = new JSONObject();
 					jo_steps.put("Steps", ja_sequence_steps);
 					jo_out.put("StandardSequence",jo_steps);
-					//jo_out.put("StandardSequence",ja_sequence_steps);
+					strSequenceID = ja_sequence_steps.getJSONObject(0).optString("SequenceID");
+					jo_out.put("SequenceID",strSequenceID);
 				}
 				ja_rework  =  JSONHelper.json_db("q",strSQL_jobnr_sequnces_rework, 1, strItemID);
+				
 				jo_out.put("ReworkSequences",ja_rework);
+				
 				return Response.ok(jo_out.toString(1)).build();
 			}
 		}
@@ -852,19 +856,13 @@ public class WebApp {
 			strOperationID = jo.optString("OperationID");
 			strWorkInstruction = jo.optString("WorkInstruction");
 			
-			JSONHelper.json_db("e",strSequence_steps_add, 10 ,strSequenceID, intSequenceType, strItemID, intOperationNr,strOperationID ,strWorkInstruction, 0 , 0 , 0 ,1 );
+			JSONHelper.json_db("e",strSequence_steps_add, 10 ,strSequenceID, intSequenceType, strItemID, strDefectTypeID, intOperationNr,strOperationID ,strWorkInstruction, 0 , 0 , 0 ,1 );
 		
 		}
 		
 		return return_sequence(strSequenceID) ;
 	}
 
-	
-	
-	
-	
-	
-	
 	
 	
 	
