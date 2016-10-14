@@ -789,6 +789,7 @@ public class WebApp {
 
 	@Path("/sequence/{SequenceID}")
 	@GET
+	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response return_sequence(@PathParam("SequenceID") String strSequenceID) throws Exception {
 
@@ -801,7 +802,7 @@ public class WebApp {
 		
 		// Find the sequence information  
 		if (ja.length()>0 ) {
-			jo_out.put("Sequence", ja);
+			jo_out.put("Steps", ja);
 			return Response.ok(jo_out.toString(1)).build();
 		}
 		
