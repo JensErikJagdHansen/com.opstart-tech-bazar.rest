@@ -42,6 +42,7 @@ public class WebApp {
 	//Connection string
 	// Test environment
 //	public static final String dbURL = "jdbc:sqlserver://217.157.143.212:49170;databaseName=pandoradatacapture;user=flowline;password=123";
+//	public static final String dbURL = "jdbc:sqlserver://implement-dev.com:49170;databaseName=pandoradatacapture;user=flowline;password=123";
 	public static final String dbURL = "jdbc:sqlserver://localhost:49170;databaseName=pandoradatacapture;user=flowline;password=123";
 
 
