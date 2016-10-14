@@ -137,10 +137,13 @@ public class WebApp {
 	private static final String strSQL_sequence = "SELECT [330_standard_sequences].*, [320_operations].OperationDescription_EN, [320_operations].OperationDescription_TH "
 			+" FROM [320_operations] INNER JOIN [330_standard_sequences] ON [320_operations].OperationID = [330_standard_sequences].OperationID where SequenceID = ? order by OperationNr ";
 	
+	
+	private static final String strSQL_sequence_def = "Select * from [415_Sequences] where SequenceID = ?";
+	
 	private static final String strSQL_Sequences_MaxSortID = "Select max(sortID) as SortID from [415_sequences] where ItemID = ? and DefectTypeID = ?";
 
 	private static final String strSequence_add = "INSERT INTO [415_sequences] ( SequenceID, SequenceType,  ItemID, DefectTypeID , SequenceDescription_EN, SequenceDescription_TH, SortID ) SELECT  ?,?,?, ?,?,?,? ";
-	public static final String strSequence_steps_add = "Insert into [330_standard_sequences] (SequenceID ,SequenceType,ItemID, DefectTypeID, OperationNr,OperationID ,WorkInstruction, ProcessTime, MachineTime,WeightControlFlag ,OperationMultipla ) select ?,?,?,  ?,?,?,  ?,?,? ,? ";
+	public static final String strSequence_steps_add = "Insert into [330_standard_sequences] (SequenceID ,SequenceType,ItemID, DefectTypeID, OperationNr,OperationID ,WorkInstruction, ProcessTime, MachineTime,WeightControlFlag ,OperationMultipla ) select ?,?,?,  ?,?,?,  ?,?,? ,?,? ";
 	
 	private static final String strSQL_jobnr_baskets = "SELECT * from [610_baskets] where  basketstatus > 0 and  basketstatus<6  and JobNr like ? order by OperationID, DateTime_Load";
 	
@@ -797,16 +800,20 @@ public class WebApp {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response return_sequence(@PathParam("SequenceID") String strSequenceID) throws Exception {
 
-    // current only working for rework sequences
+		// current only working for rework sequences
+		
 		JSONObject jo_out = new JSONObject();
-		jo_out.put("SequenceID", strSequenceID) ;
+		
 			
 		// find sequence from item ID. Look up in table "420_rework_sequences" 
-		JSONArray ja  =  JSONHelper.json_db("q",strSQL_sequence, 1, strSequenceID);
+		JSONArray ja_sequence =  JSONHelper.json_db("q",strSQL_sequence, 1, strSequenceID);
+		JSONArray ja_def = JSONHelper.json_db("q",  strSQL_sequence_def,1,strSequenceID);
+		
 		
 		// Find the sequence information  
-		if (ja.length()>0 ) {
-			jo_out.put("Steps", ja);
+		if (ja_sequence.length()>0 && ja_def.length()>0) {
+			jo_out = ja_def.getJSONObject(0);
+			jo_out.put("Steps", ja_sequence);
 			return Response.ok(jo_out.toString(1)).build();
 		}
 		
@@ -814,6 +821,8 @@ public class WebApp {
 		JSONArray Msg = JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"sequence_not_found_rework");	
 		String str = Msg.getJSONObject(0).toString(1).replace("??", strSequenceID);
 		return Response.status(404).entity(str).build();
+		
+		
 	}
 
 	
@@ -856,7 +865,7 @@ public class WebApp {
 			strOperationID = jo.optString("OperationID");
 			strWorkInstruction = jo.optString("WorkInstruction");
 			
-			JSONHelper.json_db("e",strSequence_steps_add, 10 ,strSequenceID, intSequenceType, strItemID, strDefectTypeID, intOperationNr,strOperationID ,strWorkInstruction, 0 , 0 , 0 ,1 );
+			JSONHelper.json_db("e",strSequence_steps_add, 11 ,strSequenceID, intSequenceType, strItemID, strDefectTypeID,intOperationNr,strOperationID ,strWorkInstruction, 0 , 0 , 0 ,1 );
 		
 		}
 		
