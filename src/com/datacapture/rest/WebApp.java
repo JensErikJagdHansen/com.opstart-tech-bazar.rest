@@ -543,116 +543,123 @@ public class WebApp {
 		if (Double.isNaN(dblWeight_Out)) dblWeight_Out = 0;
 
 		
-		String strBtnPressed = BasketInfo.optString("BtnPressed");
+		JSONArray ja_BtnPressed = BasketInfo.optJSONArray("BtnPressed");
 		
 		double dblStdProcessTime = 0;
 		double dblStdMachineTime = 0;
 
 		JSONArray ja = new JSONArray();
-		JSONArray ja_current = new JSONArray();
 		String strLoad_YearWeek = "";
 		Integer intLoad_Shift = 0;
+		String strBtnPressed = null;
+		JSONArray ja_std_time = new JSONArray();
+		JSONArray ja_current = new JSONArray();
 
+		// if more then one button pressed in one shot (functional mode) then cycle through buttons 
+		for (int j=0;j<ja_BtnPressed.length();j++ ) {
+			strBtnPressed = ja_BtnPressed.getString(j);
 		
-		// find the standard time to use for loading a new basket
-		if ( strBtnPressed.equals("load") || strBtnPressed.equals("next") ){
-			if (strBtnPressed.equals("next")) intOperationNr = intOperationNr + 1;
-		
-			// Lookup standard process time and machine time. If standard sequence (1) then look in "300_standard_sequences", else (2) look in "420_rework_seqences" 
-			JSONArray ja_std_time = new JSONArray();
-			ja_std_time = JSONHelper.json_db("q",strSQL_standard_time_standard, 2, strSequenceID, intOperationNr );
 
-			if (ja_std_time.length()>0 ) {
-				dblStdProcessTime = ja_std_time.getJSONObject(0).optDouble("ProcessTime");
-				dblStdMachineTime = ja_std_time.getJSONObject(0).optDouble("MachineTime");
-				strOperationID = ja_std_time.getJSONObject(0).optString("OperationID");
-				strWorkInstruction = ja_std_time.getJSONObject(0).optString("WorkInstruction");
-				intOperationMultipla =  ja_std_time.getJSONObject(0).optInt("OperationMultipla", 1);
-				}
-		}
-		
-		
-		// do different stuff depending on what button was pressed
-		switch (strBtnPressed.toLowerCase()) {
-
-		case "load":
-			// read current YearWeek, Shift and Hour (updated on server with stored procedure)
-			ja_current = JSONHelper.json_db("q",strSQL_Current,0);
-			strLoad_YearWeek = ja_current.getJSONObject(0).optString("Current_YearWeek");
-			intLoad_Shift = ja_current.getJSONObject(0).optInt("Current_Shift");
+			// find the standard time to use for loading a new basket
+			if ( strBtnPressed.equals("load") || strBtnPressed.equals("next") ){
+				if (strBtnPressed.equals("next")) intOperationNr = intOperationNr + 1;
 			
-			// Load the basket. Update record in "610_basket_status"			
-			ja = JSONHelper.json_db("e",strSQL_status_load, 27, strImagUrl, strLineID, strJobNr, strItemID, intOperationNr, strOperationID, strWorkInstruction, intSequenceType, strSequenceID, strDefectTypeID, 1, strUserID, 
-					strWorkbenchID, dblStdProcessTime, dblStdMachineTime, intGood_Pcs_In ,intGood_Pcs_In,  intBad_Pcs_In,  intBad_Pcs_In, intRejected_Pcs_In, intRejected_Pcs_Out, dblWeight_In ,  dblWeight_Out , strLoad_YearWeek, intLoad_Shift, intOperationMultipla, strBasketID);
-			
-			JSONHelper.json_db("e",strSQL_load_JobNr_initiate,1,strJobNr);
-			
-			break;
-
-		case "start":
-
-			
-			ja = JSONHelper.json_db("e",strSQL_status_start, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out ,strBasketID);
-			break;
-		
-		case "start_after_pause":
-			ja = JSONHelper.json_db("e",strSQL_status_start_after_pause, 6, strUserID,  strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
-			break;
-
-		case "start_after_rework":
-			ja = JSONHelper.json_db("e",strSQL_status_start_after_rework, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
-			break;
-		
-		case "pause":
-			ja = JSONHelper.json_db("e",strSQL_status_pause, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
-			break;
-		
-		case "rework":
-			ja = JSONHelper.json_db("e",strSQL_status_rework, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
-			break;
-			
-		case "end": 
-			ja = JSONHelper.json_db("e",strSQL_status_end, 6, strUserID, strWorkbenchID, intGood_Pcs_Out,  intBad_Pcs_Out, intRejected_Pcs_Out,  strBasketID);
-			break;
-			
-		case "unload":
-			//unload in "610_Baskets" and add to log "620_Basket_log"
-			ja = JSONHelper.json_db("e",strSQL_status_unload, 11, strUserID,  strWorkbenchID, intGood_Pcs_In ,intGood_Pcs_Out,  intBad_Pcs_In,  intBad_Pcs_Out,  intRejected_Pcs_In, intRejected_Pcs_Out ,dblWeight_In ,  dblWeight_Out , strBasketID);
-			// if basket not in status (0 records affected)		
-			if (ja.getJSONObject(0).getInt("records_affected")==0 )	{  
-				return Response.status(404).entity(JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"basket_status_not_right").getJSONObject(0).toString(1) ).build();
+				// Lookup standard process time and machine time. If standard sequence (1) then look in "300_standard_sequences", else (2) look in "420_rework_seqences" 
+				ja_std_time = JSONHelper.json_db("q",strSQL_standard_time_standard, 2, strSequenceID, intOperationNr );
+	
+				if (ja_std_time.length()>0 ) {
+					dblStdProcessTime = ja_std_time.getJSONObject(0).optDouble("ProcessTime");
+					dblStdMachineTime = ja_std_time.getJSONObject(0).optDouble("MachineTime");
+					strOperationID = ja_std_time.getJSONObject(0).optString("OperationID");
+					strWorkInstruction = ja_std_time.getJSONObject(0).optString("WorkInstruction");
+					intOperationMultipla =  ja_std_time.getJSONObject(0).optInt("OperationMultipla", 1);
+					}
 			}
-			JSONHelper.json_db("e",strSQL_status_add_basketlog, 1, strBasketID);
-			JSONHelper.json_db("e",strSQL_status_add_basketlog_hist, 1, strBasketID);
-			JSONHelper.json_db("e",strSQL_status_clear_basket, 1, strBasketID);
 			
-			break;
+			
+			// do different stuff depending on what button was pressed
+			switch (strBtnPressed.toLowerCase()) {
+	
+			case "load":
+				// read current YearWeek, Shift and Hour (updated on server with stored procedure)
+				ja_current = JSONHelper.json_db("q",strSQL_Current,0);
+				strLoad_YearWeek = ja_current.getJSONObject(0).optString("Current_YearWeek");
+				intLoad_Shift = ja_current.getJSONObject(0).optInt("Current_Shift");
 				
-		case "next":
-			//unload in "610_Baskets" and add to log "620_Basket_log"
-			ja = JSONHelper.json_db("e",strSQL_status_unload, 11, strUserID,  strWorkbenchID, intGood_Pcs_In ,intGood_Pcs_Out,  intBad_Pcs_In,  intBad_Pcs_Out, intRejected_Pcs_In, intRejected_Pcs_Out , dblWeight_In ,  dblWeight_Out,  strBasketID);
-			// if basket not in status (0 records affected)		
-			if (ja.getJSONObject(0).getInt("records_affected")==0 )	{  
-				return Response.status(404).entity(JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"basket_status_not_right").getJSONObject(0).toString(1) ).build();
+				// Load the basket. Update record in "610_basket_status"			
+				ja = JSONHelper.json_db("e",strSQL_status_load, 27, strImagUrl, strLineID, strJobNr, strItemID, intOperationNr, strOperationID, strWorkInstruction, intSequenceType, strSequenceID, strDefectTypeID, 1, strUserID, 
+						strWorkbenchID, dblStdProcessTime, dblStdMachineTime, intGood_Pcs_In ,intGood_Pcs_In,  intBad_Pcs_In,  intBad_Pcs_In, intRejected_Pcs_In, intRejected_Pcs_Out, dblWeight_In ,  dblWeight_Out , strLoad_YearWeek, intLoad_Shift, intOperationMultipla, strBasketID);
+				
+				JSONHelper.json_db("e",strSQL_load_JobNr_initiate,1,strJobNr);
+				
+				break;
+	
+			case "start":
+	
+				
+				ja = JSONHelper.json_db("e",strSQL_status_start, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out ,strBasketID);
+				break;
+			
+			case "start_after_pause":
+				ja = JSONHelper.json_db("e",strSQL_status_start_after_pause, 6, strUserID,  strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
+				break;
+	
+			case "start_after_rework":
+				ja = JSONHelper.json_db("e",strSQL_status_start_after_rework, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
+				break;
+			
+			case "pause":
+				ja = JSONHelper.json_db("e",strSQL_status_pause, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
+				break;
+			
+			case "rework":
+				ja = JSONHelper.json_db("e",strSQL_status_rework, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
+				break;
+				
+			case "end": 
+				ja = JSONHelper.json_db("e",strSQL_status_end, 6, strUserID, strWorkbenchID, intGood_Pcs_Out,  intBad_Pcs_Out, intRejected_Pcs_Out,  strBasketID);
+				break;
+				
+			case "unload":
+				//unload in "610_Baskets" and add to log "620_Basket_log"
+				ja = JSONHelper.json_db("e",strSQL_status_unload, 11, strUserID,  strWorkbenchID, intGood_Pcs_In ,intGood_Pcs_Out,  intBad_Pcs_In,  intBad_Pcs_Out,  intRejected_Pcs_In, intRejected_Pcs_Out ,dblWeight_In ,  dblWeight_Out , strBasketID);
+				// if basket not in status (0 records affected)		
+				if (ja.getJSONObject(0).getInt("records_affected")==0 )	{  
+					return Response.status(404).entity(JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"basket_status_not_right").getJSONObject(0).toString(1) ).build();
+				}
+				JSONHelper.json_db("e",strSQL_status_add_basketlog, 1, strBasketID);
+				JSONHelper.json_db("e",strSQL_status_add_basketlog_hist, 1, strBasketID);
+				JSONHelper.json_db("e",strSQL_status_clear_basket, 1, strBasketID);
+				
+				break;
+					
+			case "next":
+				//unload in "610_Baskets" and add to log "620_Basket_log"
+				ja = JSONHelper.json_db("e",strSQL_status_unload, 11, strUserID,  strWorkbenchID, intGood_Pcs_In ,intGood_Pcs_Out,  intBad_Pcs_In,  intBad_Pcs_Out, intRejected_Pcs_In, intRejected_Pcs_Out , dblWeight_In ,  dblWeight_Out,  strBasketID);
+				// if basket not in status (0 records affected)		
+				if (ja.getJSONObject(0).getInt("records_affected")==0 )	{  
+					return Response.status(404).entity(JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"basket_status_not_right").getJSONObject(0).toString(1) ).build();
+				}
+				
+				// put basket in to log and into log_hist
+				JSONHelper.json_db("e",strSQL_status_add_basketlog, 1, strBasketID);
+				JSONHelper.json_db("e",strSQL_status_add_basketlog_hist, 1, strBasketID);
+				JSONHelper.json_db("e",strSQL_status_clear_basket, 1, strBasketID);
+	
+				// read current YearWeek, Shift and Hour (updated on server with stored procedure)
+				ja_current = JSONHelper.json_db("q",strSQL_Current,0);
+				strLoad_YearWeek = ja_current.getJSONObject(0).optString("Current_YearWeek");
+				intLoad_Shift = ja_current.getJSONObject(0).optInt("Current_Shift");
+				
+				// Load the basket. Update record in "610_baskets"			
+				ja = JSONHelper.json_db("e",strSQL_status_load, 27, strImagUrl, strLineID, strJobNr, strItemID, intOperationNr, strOperationID, strWorkInstruction, intSequenceType, strSequenceID, strDefectTypeID, 1, strUserID, 
+						strWorkbenchID, dblStdProcessTime, dblStdMachineTime, intGood_Pcs_Out , intGood_Pcs_Out,  intBad_Pcs_Out,  intBad_Pcs_Out ,intRejected_Pcs_Out, intRejected_Pcs_Out,   dblWeight_Out ,  0 , strLoad_YearWeek, intLoad_Shift, intOperationMultipla, strBasketID); 
+	
+				break;
 			}
-			
-			// put basket in to log and into log_hist
-			JSONHelper.json_db("e",strSQL_status_add_basketlog, 1, strBasketID);
-			JSONHelper.json_db("e",strSQL_status_add_basketlog_hist, 1, strBasketID);
-			JSONHelper.json_db("e",strSQL_status_clear_basket, 1, strBasketID);
-
-			// read current YearWeek, Shift and Hour (updated on server with stored procedure)
-			ja_current = JSONHelper.json_db("q",strSQL_Current,0);
-			strLoad_YearWeek = ja_current.getJSONObject(0).optString("Current_YearWeek");
-			intLoad_Shift = ja_current.getJSONObject(0).optInt("Current_Shift");
-			
-			// Load the basket. Update record in "610_baskets"			
-			ja = JSONHelper.json_db("e",strSQL_status_load, 27, strImagUrl, strLineID, strJobNr, strItemID, intOperationNr, strOperationID, strWorkInstruction, intSequenceType, strSequenceID, strDefectTypeID, 1, strUserID, 
-					strWorkbenchID, dblStdProcessTime, dblStdMachineTime, intGood_Pcs_Out , intGood_Pcs_Out,  intBad_Pcs_Out,  intBad_Pcs_Out ,intRejected_Pcs_Out, intRejected_Pcs_Out,   dblWeight_Out ,  0 , strLoad_YearWeek, intLoad_Shift, intOperationMultipla, strBasketID); 
-
-			break;
 		}
-
+		
+		
 		// if basket not in status (0 records affected)		
 		if (ja.getJSONObject(0).getInt("records_affected")==0 )	{  
 			return Response.status(404).entity(JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"basket_status_not_right").getJSONObject(0).toString(1) ).build();
