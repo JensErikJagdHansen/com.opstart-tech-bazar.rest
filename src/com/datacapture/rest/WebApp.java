@@ -707,8 +707,10 @@ public class WebApp {
 					JSONObject jo_steps = new JSONObject();
 					jo_steps.put("Steps", ja_sequence_steps);
 					jo_out.put("StandardSequence",jo_steps);
+					
 					strSequenceID = ja_sequence_steps.getJSONObject(0).optString("SequenceID");
-					jo_out.put("SequenceID",strSequenceID);
+					jo_out.getJSONObject("StandardSequence").put("SequenceID",strSequenceID);
+
 				}
 				ja_rework  =  JSONHelper.json_db("q",strSQL_jobnr_sequnces_rework, 1, strItemID);
 				
