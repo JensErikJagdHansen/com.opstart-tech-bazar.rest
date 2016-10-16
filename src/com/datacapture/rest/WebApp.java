@@ -183,7 +183,7 @@ public class WebApp {
 	
 	private static final String strSQL_load_JobNr_initiate = "update [520_LoadPlan] set Initiated =  1, Initiated_DateTime= getdate() where JobNr =  ? AND (Initiated = 0 or Initiated is null)  ";
 	
-	private static final String strSQL_load_JobNr_recieve = "update [520_LoadPlan] set Recieved =  1 - ISNULL(Recieved, 0 ) ,  Recieved_DateTime = iif( Recieved=1,Null,getdate()) where JobNr =  ?";
+	private static final String strSQL_load_JobNr_receive = "update [520_LoadPlan] set Received =  1 - ISNULL(Received, 0 ) ,  Received_DateTime = iif( Received=1,Null,getdate()) where JobNr =  ?";
 	
 	
 	
@@ -731,12 +731,13 @@ public class WebApp {
 		}
 
 	//toggle job
-	@Path("/toggle/recieve/job/{JobNr}")
-	@PUT
+	@Path("/job/{JobNr}/toggle_receive")
+	@POST
+	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response return_toggle_job_recieved(@PathParam("JobNr") String strJobNr) throws Exception {
+	public Response return_toggle_job_received(@PathParam("JobNr") String strJobNr) throws Exception {
 		
-		JSONArray ja  =  JSONHelper.json_db("e",strSQL_load_JobNr_recieve,1,strJobNr);
+		JSONArray ja  =  JSONHelper.json_db("e",strSQL_load_JobNr_receive,1,strJobNr);
 		
 		Integer i = ja.getJSONObject(0).optInt("records_affected");
 		if (i != 0) {
