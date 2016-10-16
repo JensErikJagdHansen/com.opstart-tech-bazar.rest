@@ -32,10 +32,10 @@ import static java.util.concurrent.TimeUnit.*;
 public class WebApp {
 	
 	//Connection version 
-	public static final String strVersion = 		"2.0.5.2";
+	public static final String strVersion = 		"2.0.6.1";
 
 	// If the last last 'z' in x.y.z is different than the in app, then a forced update of app is required of the phone/tablet
-	public static final String strVersion_release = "2.0.5";
+	public static final String strVersion_release = "2.0.6";
 
 	public static final Integer intPrint_JSON = 0 ; //Set =0 if not print JSON, =1 if print JSON
 	
