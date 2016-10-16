@@ -741,7 +741,7 @@ public class WebApp {
 		
 		Integer i = ja.getJSONObject(0).optInt("records_affected");
 		if (i != 0) {
-			return Response.ok(JSONHelper.json_db("q",strSQL_jobnr_get, 1, strJobNr).toString(1)).build();
+			return Response.ok(JSONHelper.json_db("q",strSQL_jobnr_get, 1, strJobNr).getJSONObject(0).toString(1)).build();
 		}
 		// return error code if not found
 		JSONArray Msg = JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"jobnr_not_found");		
