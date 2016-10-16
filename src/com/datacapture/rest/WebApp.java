@@ -114,7 +114,7 @@ public class WebApp {
 													+ "DateTime_Unload = getdate(), Last_Update = getdate()  where BasketID = ? AND BasketStatus = 5";
 
 	private static final String strSQL_status_clear_basket = "UPDATE [610_Baskets] SET BasketStatus = 0, ImagUrl = Null, UserID = Null, LineID = Null, WorkbenchID = Null , ItemID =  Null, Load_YearWeek  = Null, Load_Shift = Null,  OperationNr = Null, OperationID=Null , WorkInstruction = Null, "
-									+ "Std_ProcessTime = 0, Std_MachineTime=0,  Last_Update = getdate() , JobNr=Null, SequenceID = Null, SequenceType = 1 , "
+									+ "Std_ProcessTime = 0, Std_MachineTime=0,  Last_Update = getdate() , JobNr=Null, SequenceID = Null, SequenceType = 1 , DefectTypeID = Null , "
 									+ " Good_Pcs_In = 0, Good_Pcs_Out = 0 , Bad_Pcs_in = 0, Bad_Pcs_Out = 0,  Pause_Time=0, Rework_Time=0 ,Rejected_Pcs_in = 0, Rejected_Pcs_out = 0,  " 
 									+ "Weight_In = 0, Weight_Out = 0, DateTime_Load =Null , DateTime_Start =Null , DateTime_End=Null , DateTime_Unload=Null, OperationMultipla=1  where BasketID = ? ";
 	
