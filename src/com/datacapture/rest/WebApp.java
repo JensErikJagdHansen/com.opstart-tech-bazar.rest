@@ -43,14 +43,14 @@ public class WebApp {
 	// Test environment
 //	public static final String dbURL = "jdbc:sqlserver://217.157.143.212:49170;databaseName=pandoradatacapture;user=flowline;password=123";
 //	public static final String dbURL = "jdbc:sqlserver://implement-dev.com:49170;databaseName=pandoradatacapture;user=flowline;password=123";
-	public static final String dbURL = "jdbc:sqlserver://localhost:49170;databaseName=pandoradatacapture;user=flowline;password=123";
+//	public static final String dbURL = "jdbc:sqlserver://localhost:49170;databaseName=pandoradatacapture;user=flowline;password=123";
 
 
 	// There are problems with this (it seems to work also, JEH) //USE THIS ONE FOR SERVER
 //	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;integratedSecurity=true";
 
 	//USE THIS ONE FOR SERVER
-//	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;user=flowline;password=123";
+	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;user=flowline;password=123";
 	
 		
 	//Error messages
