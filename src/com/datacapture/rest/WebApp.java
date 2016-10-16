@@ -183,6 +183,8 @@ public class WebApp {
 	
 	private static final String strSQL_load_JobNr_initiate = "update [520_LoadPlan] set Initiated =  1, Initiated_DateTime= getdate() where JobNr =  ? AND (Initiated = 0 or Initiated is null)  ";
 	
+	private static final String strSQL_load_JobNr_recieve = "update [520_LoadPlan] set Recieved =  1 - ISNULL(Recieved, 0 ) ,  Recieved_DateTime = iif( Recieved=1,Null,getdate()) where JobNr =  ?";
+	
 	
 	
 	
@@ -650,6 +652,9 @@ public class WebApp {
 				ja_current = JSONHelper.json_db("q",strSQL_Current,0);
 				strLoad_YearWeek = ja_current.getJSONObject(0).optString("Current_YearWeek");
 				intLoad_Shift = ja_current.getJSONObject(0).optInt("Current_Shift");
+				strWorkbenchID="";
+				
+				
 				
 				// Load the basket. Update record in "610_baskets"			
 				ja = JSONHelper.json_db("e",strSQL_status_load, 27, strImagUrl, strLineID, strJobNr, strItemID, intOperationNr, strOperationID, strWorkInstruction, intSequenceType, strSequenceID, strDefectTypeID, 1, strUserID, 
@@ -720,13 +725,30 @@ public class WebApp {
 			}
 		}
 
-		
-		
 		// return error code if not found
 		JSONArray Msg = JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"jobnr_not_found");		
 		return Response.status(404).entity(Msg.getJSONObject(0).toString(1)).build();
 		}
 
+	//toggle job
+	@Path("/toggle/recieve/job/{JobNr}")
+	@PUT
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response return_toggle_job_recieved(@PathParam("JobNr") String strJobNr) throws Exception {
+		
+		JSONArray ja  =  JSONHelper.json_db("e",strSQL_load_JobNr_recieve,1,strJobNr);
+		
+		Integer i = ja.getJSONObject(0).optInt("records_affected");
+		if (i != 0) {
+			return Response.ok(JSONHelper.json_db("q",strSQL_jobnr_get, 1, strJobNr).toString(1)).build();
+		}
+		// return error code if not found
+		JSONArray Msg = JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"jobnr_not_found");		
+		return Response.status(404).entity(Msg.getJSONObject(0).toString(1)).build();
+
+	}
+	
+	
 	//display all baskets for a given job
 	@Path("/baskets/{JobNr}")
 	@GET
