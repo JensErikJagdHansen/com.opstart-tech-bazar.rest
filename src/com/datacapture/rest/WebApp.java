@@ -564,7 +564,7 @@ public class WebApp {
 			if ( strBtnPressed.equals("load") || strBtnPressed.equals("next") ){
 				if (strBtnPressed.equals("next")) intOperationNr = intOperationNr + 1;
 			
-				// Lookup standard process time and machine time. If standard sequence (1) then look in "300_standard_sequences", else (2) look in "420_rework_seqences" 
+				// Lookup standard process time and machine time. If standard sequence (1) then look in "300_standard_sequences", else (2) look in "rework_seqences" 
 				ja_std_time = JSONHelper.json_db("q",strSQL_standard_time_standard, 2, strSequenceID, intOperationNr );
 	
 				if (ja_std_time.length()>0 ) {
@@ -814,7 +814,7 @@ public class WebApp {
 		JSONObject jo_out = new JSONObject();
 		
 			
-		// find sequence from item ID. Look up in table "420_rework_sequences" 
+		// find sequence from item ID. Look up in table "rework_sequences" 
 		JSONArray ja_sequence =  JSONHelper.json_db("q",strSQL_sequence, 1, strSequenceID);
 		JSONArray ja_def = JSONHelper.json_db("q",  strSQL_sequence_def,1,strSequenceID);
 		
