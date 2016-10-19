@@ -43,14 +43,14 @@ public class WebApp {
 	// Test environment
 //	public static final String dbURL = "jdbc:sqlserver://217.157.143.212:49170;databaseName=pandoradatacapture;user=flowline;password=123";
 //	public static final String dbURL = "jdbc:sqlserver://implement-dev.com:49170;databaseName=pandoradatacapture;user=flowline;password=123";
-//	public static final String dbURL = "jdbc:sqlserver://localhost:49170;databaseName=pandoradatacapture;user=flowline;password=123";
+	public static final String dbURL = "jdbc:sqlserver://localhost:49170;databaseName=pandoradatacapture;user=flowline;password=123";
 
 
 	// There are problems with this (it seems to work also, JEH) //USE THIS ONE FOR SERVER
 //	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;integratedSecurity=true";
 
 	//USE THIS ONE FOR SERVER
-	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;user=flowline;password=123";
+//	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;user=flowline;password=123";
 	
 		
 	//Error messages
@@ -588,9 +588,11 @@ public class WebApp {
 				strLoad_YearWeek = ja_current.getJSONObject(0).optString("Current_YearWeek");
 				intLoad_Shift = ja_current.getJSONObject(0).optInt("Current_Shift");
 				
+				if (intSequenceType==2) dblWeight_Out = dblWeight_In; 
+						
 				// Load the basket. Update record in "610_basket_status"			
 				ja = JSONHelper.json_db("e",strSQL_status_load, 27, strImagUrl, strLineID, strJobNr, strItemID, intOperationNr, strOperationID, strWorkInstruction, intSequenceType, strSequenceID, strDefectTypeID, 1, strUserID, 
-						strWorkbenchID, dblStdProcessTime, dblStdMachineTime, intGood_Pcs_In ,intGood_Pcs_In,  intBad_Pcs_In,  intBad_Pcs_In, intRejected_Pcs_In, intRejected_Pcs_Out, dblWeight_In ,  dblWeight_Out , strLoad_YearWeek, intLoad_Shift, intOperationMultipla, strBasketID);
+						strWorkbenchID, dblStdProcessTime, dblStdMachineTime, intGood_Pcs_In ,intGood_Pcs_In,  intBad_Pcs_In,  intBad_Pcs_In, intRejected_Pcs_In, intRejected_Pcs_In, dblWeight_In ,  dblWeight_Out , strLoad_YearWeek, intLoad_Shift, intOperationMultipla, strBasketID);
 				
 				JSONHelper.json_db("e",strSQL_load_JobNr_initiate,1,strJobNr);
 				
