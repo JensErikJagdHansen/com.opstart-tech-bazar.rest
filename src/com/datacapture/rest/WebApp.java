@@ -131,7 +131,7 @@ public class WebApp {
 	private static final String strSQL_jobnr_sequences = "SELECT [330_standard_sequences].*, [320_operations].OperationDescription_EN, [320_operations].OperationDescription_TH "
 													+" FROM [320_operations] INNER JOIN [330_standard_sequences] ON [320_operations].OperationID = [330_standard_sequences].OperationID where ItemID = ? and SequenceType=1 order by OperationNr ";
 	
-	private static final String strSQL_jobnr_sequnces_rework =  "select * from [415_Sequences] where ItemID= ? and SequenceType = 2  order by DefectTypeID, SortID";
+	private static final String strSQL_jobnr_sequences_rework =  "select * from [415_Sequences] where (ItemID= ? or ItemID is Null) and SequenceType = 2  order by DefectTypeID, ItemRelationType Desc, SortID " ;
 
 	
 	private static final String strSQL_sequence = "SELECT [330_standard_sequences].*, [320_operations].OperationDescription_EN, [320_operations].OperationDescription_TH "
@@ -140,7 +140,9 @@ public class WebApp {
 	
 	private static final String strSQL_sequence_def = "Select * from [415_Sequences] where SequenceID = ?";
 	
-	private static final String strSQL_Sequences_MaxSortID = "Select max(sortID) as SortID from [415_sequences] where ItemID = ? and DefectTypeID = ?";
+	private static final String strSQL_Sequences_MaxSortID_specific  = " Select max(sortID) as SortID from [415_sequences] where ItemID = ? and DefectTypeID = ?";
+	private static final String strSQL_Sequences_MaxSortID_generic  = " Select max(sortID) as SortID from [415_sequences] where ItemID is null and DefectTypeID = ?";
+	
 
 	private static final String strSequence_add = "INSERT INTO [415_sequences] ( SequenceID, SequenceType,  ItemID, DefectTypeID , SequenceDescription_EN, SequenceDescription_TH, SortID ) SELECT  ?,?,?, ?,?,?,? ";
 	public static final String strSequence_steps_add = "Insert into [330_standard_sequences] (SequenceID ,SequenceType,ItemID, DefectTypeID, OperationNr,OperationID ,WorkInstruction, ProcessTime, MachineTime,WeightControlFlag ,OperationMultipla ) select ?,?,?,  ?,?,?,  ?,?,? ,?,? ";
@@ -719,7 +721,7 @@ public class WebApp {
 					jo_out.getJSONObject("StandardSequence").put("SequenceID",strSequenceID);
 
 				}
-				ja_rework  =  JSONHelper.json_db("q",strSQL_jobnr_sequnces_rework, 1, strItemID);
+				ja_rework  =  JSONHelper.json_db("q",strSQL_jobnr_sequences_rework, 1, strItemID);
 				
 				jo_out.put("ReworkSequences",ja_rework);
 				
@@ -874,11 +876,23 @@ public class WebApp {
 		String strDefectTypeID = jo_InfoKey.optString("DefectTypeID");
 		String strDescpription_EN  = jo_InfoKey.optString("Description_EN");
 		String strDescpription_TH  = jo_InfoKey.optString("Description_TH");
+		Integer intItemRelationType = 1;
+
 		
+		// if generic
+		if (strItemID == null  || strItemID.length() ==0) intItemRelationType=2;
 		
+	
 		JSONArray ja_sequence = jo_InfoKey.getJSONArray("Sequence");
 
-		JSONArray ja_SortID= JSONHelper.json_db("q",strSQL_Sequences_MaxSortID, 2 ,strItemID, strDefectTypeID); 
+		JSONArray ja_SortID = new JSONArray();
+		if  (intItemRelationType== 1) {
+			ja_SortID= JSONHelper.json_db("q",strSQL_Sequences_MaxSortID_specific, 2, strItemID, strDefectTypeID);
+		}
+		else {
+			ja_SortID= JSONHelper.json_db("q",strSQL_Sequences_MaxSortID_generic, 1,  strDefectTypeID);
+		} 
+		
 		Integer intSortID = ja_SortID.getJSONObject(0).optInt("SortID") + 1;
 		String strSequenceID = "rwk-" + strItemID + "-" + strDefectTypeID + "-" + intSortID;		
 		Integer intSequenceType=2;
