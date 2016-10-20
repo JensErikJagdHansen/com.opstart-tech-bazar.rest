@@ -51,6 +51,7 @@ public class WebApp {
 
 	//USE THIS ONE FOR SERVER
 //	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;user=flowline;password=123";
+//	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;user=DataCaptureWriter;password=Sup3rMan";
 	
 		
 	//Error messages
@@ -469,6 +470,7 @@ public class WebApp {
 	
 	}
 
+	
 	
 		
 //-------------------------------------------------------------------------------------------------------------------------------------------------------	
