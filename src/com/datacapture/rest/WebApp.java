@@ -43,7 +43,7 @@ public class WebApp {
 	// Test environment
 //	public static final String dbURL = "jdbc:sqlserver://217.157.143.212:49170;databaseName=pandoradatacapture;user=flowline;password=123";
 //	public static final String dbURL = "jdbc:sqlserver://implement-dev.com:49170;databaseName=pandoradatacapture;user=flowline;password=123";
-	public static final String dbURL = "jdbc:sqlserver://localhost:49170;databaseName=pandoradatacapture;user=flowline;password=123";
+//	public static final String dbURL = "jdbc:sqlserver://localhost:49170;databaseName=pandoradatacapture;user=flowline;password=123";
 
 
 	// There are problems with this (it seems to work also, JEH) //USE THIS ONE FOR SERVER
@@ -51,7 +51,7 @@ public class WebApp {
 
 	//USE THIS ONE FOR SERVER
 //	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;user=flowline;password=123";
-//	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;user=DataCaptureWriter;password=Sup3rMan";
+	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;user=DataCaptureWriter;password=Sup3rMan";
 	
 		
 	//Error messages
@@ -187,7 +187,7 @@ public class WebApp {
 	private static final String strSQL_load_JobNr_initiate = "update [520_LoadPlan] set Initiated =  1, Initiated_DateTime= getdate() where JobNr =  ? AND (Initiated = 0 or Initiated is null)  ";
 	
 	private static final String strSQL_load_JobNr_receive = "update [520_LoadPlan] set Received =  1 - ISNULL(Received, 0 ) ,  Received_DateTime = iif( Received=1,Null,getdate()) where JobNr =  ? and (Initiated=0 or Initiated is Null)";
-	
+	private static final String strSQL_load_JobNr_force_receive = "update [520_LoadPlan] set Received =  1 - ISNULL(Received, 0 ) ,  Received_DateTime = iif( Received=1,Null,getdate()) where JobNr =  ? and (Received =0 or Received is Null)";
 	
 	
 	
@@ -601,7 +601,11 @@ public class WebApp {
 				ja = JSONHelper.json_db("e",strSQL_status_load, 27, strImagUrl, strLineID, strJobNr, strItemID, intOperationNr, strOperationID, strWorkInstruction, intSequenceType, strSequenceID, strDefectTypeID, 1, strUserID, 
 						strWorkbenchID, dblStdProcessTime, dblStdMachineTime, intGood_Pcs_In ,intGood_Pcs_In,  intBad_Pcs_In,  intBad_Pcs_In, intRejected_Pcs_In, intRejected_Pcs_In, dblWeight_In ,  dblWeight_Out , strLoad_YearWeek, intLoad_Shift, intOperationMultipla, strBasketID);
 				
-				JSONHelper.json_db("e",strSQL_load_JobNr_initiate,1,strJobNr);
+				JSONArray ja_init = JSONHelper.json_db("e",strSQL_load_JobNr_initiate,1,strJobNr);
+				
+				// if initiated then set as recieved
+				Integer k = ja_init.getJSONObject(0).optInt("records_affected");
+				if ( k != 0)  { JSONHelper.json_db("e",strSQL_load_JobNr_force_receive,1,strJobNr); } 
 				
 				break;
 	
@@ -766,7 +770,7 @@ public class WebApp {
 	public Response return_baskets(@PathParam("JobNr") String strJobNr) throws Exception {
 		
 			String strStar = "*";
-			if ( strStar.equals(strJobNr)  )  strJobNr = "%";
+			if ( strStar.equals(strJobNr)  )   strJobNr = "%";
 			return Response.ok(JSONHelper.json_db("q",strSQL_jobnr_baskets, 1, strJobNr).toString(1)).build();}
 
 		
