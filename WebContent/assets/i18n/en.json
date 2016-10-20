@@ -40,6 +40,9 @@
   "addNewSequence": "Add new sequence",
   "clearSequence": "Clear sequence",
   "newSequence": "New sequence ...",
+  "applySequenceTo": "Apply sequence to",
+  "allItems": "All items",
+  "onlyThisItem": "Only this item",
   "standard": "Standard",
   "defect": "Defect",
   "status": "Status",
@@ -49,7 +52,9 @@
   "planYearWeek": "Plan Year Week",
   "originalYearWeek": "Original Year Week",
   "received": "Received",
+  "initiated": "Initiated",
   "markAsReceived": "Mark as received",
+  "undo": "Undo",
   "showForJobOnly": "Show for job only",
   "baskets": "Baskets",
   "loadPlan": "Load plan",
@@ -118,6 +123,7 @@
     "cancel": "Cancel",
     "continue": "Continue",
     "close": "Close",
+    "ok": "OK",
     "pleaseWait": "Please wait..."
   }
 }

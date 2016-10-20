@@ -40,6 +40,9 @@
   "addNewSequence": "Add new sequence",
   "clearSequence": "Clear sequence",
   "newSequence": "New sequence ...",
+  "applySequenceTo": "Apply sequence to",
+  "allItems": "All items",
+  "onlyThisItem": "Only this item",
   "standard": "มาตรฐาน",
   "defect": "อาการซ่อม",
   "status": "สถานะ",
@@ -49,7 +52,9 @@
   "planYearWeek": "สัปดาห์ที่วางแผนผลิต",
   "originalYearWeek": "สัปดาห์ที่ผลิต(ดั้งเดิม)",
   "received": "Received",
+  "initiated": "Initiated",
   "markAsReceived": "Mark as received",
+  "undo": "Undo",
   "showForJobOnly": "แสดงตามใบงานเท่านั้น",
   "baskets": "ตะกร้า",
   "loadPlan": "แผนงาน",
@@ -90,7 +95,7 @@
   "connected": "เชื่อมต่อเสร็จสิ้น",
   "connecting": "กำลังทำการเชื่อมต่อ",
   "notConnected": "ยังไม่ได้ทำการเชื่อมต่อระบบ",
-  "getNewVersion": "Download new version",
+  "getNewVersion": "กรุณาดาวโหลดเวอร์ชั่นใหม่",
   "button": {
     "start": "เริ่มงาน",
     "started": "เริ่มงานแล้ว",
@@ -120,6 +125,7 @@
     "cancel": "ยกเลิก",
     "continue": "ดำเนินการต่อไป",
     "close": "ปิด",
+    "ok": "OK",
     "pleaseWait": "กรุณารอ"
   }
 }

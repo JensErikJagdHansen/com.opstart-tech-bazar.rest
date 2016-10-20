@@ -131,7 +131,7 @@ public class WebApp {
 	private static final String strSQL_jobnr_sequences = "SELECT [330_standard_sequences].*, [320_operations].OperationDescription_EN, [320_operations].OperationDescription_TH "
 													+" FROM [320_operations] INNER JOIN [330_standard_sequences] ON [320_operations].OperationID = [330_standard_sequences].OperationID where ItemID = ? and SequenceType=1 order by OperationNr ";
 	
-	private static final String strSQL_jobnr_sequences_rework =  "select * from [415_Sequences] where (ItemID= ? or ItemID is Null) and SequenceType = 2  order by DefectTypeID, ItemRelationType Desc, SortID " ;
+	private static final String strSQL_jobnr_sequences_rework =  "select * from [415_Sequences] where (ItemID= ? or ItemID is Null or ItemID='' ) and SequenceType = 2  order by DefectTypeID, ItemRelationType Desc, SortID " ;
 
 	
 	private static final String strSQL_sequence = "SELECT [330_standard_sequences].*, [320_operations].OperationDescription_EN, [320_operations].OperationDescription_TH "
@@ -140,11 +140,11 @@ public class WebApp {
 	
 	private static final String strSQL_sequence_def = "Select * from [415_Sequences] where SequenceID = ?";
 	
-	private static final String strSQL_Sequences_MaxSortID_specific  = " Select max(sortID) as SortID from [415_sequences] where ItemID = ? and DefectTypeID = ?";
-	private static final String strSQL_Sequences_MaxSortID_generic  = " Select max(sortID) as SortID from [415_sequences] where ItemID is null and DefectTypeID = ?";
+	private static final String strSQL_Sequences_MaxSortID_specific  = " Select max(sortID) as SortID from [415_sequences] where ItemID = ? and DefectTypeID = ? and ItemRelationType = 1";
+	private static final String strSQL_Sequences_MaxSortID_generic  = " Select max(sortID) as SortID from [415_sequences] where (ItemID is null or ItemID='') and DefectTypeID = ? and ItemRelationType = 2";
 	
 
-	private static final String strSequence_add = "INSERT INTO [415_sequences] ( SequenceID, SequenceType,  ItemID, DefectTypeID , SequenceDescription_EN, SequenceDescription_TH, SortID ) SELECT  ?,?,?, ?,?,?,? ";
+	private static final String strSequence_add = "INSERT INTO [415_sequences] ( SequenceID, SequenceType, ItemRelationType, ItemID, DefectTypeID , SequenceDescription_EN, SequenceDescription_TH, SortID ) SELECT  ?,?,?,  ?,?,?, ?,? ";
 	public static final String strSequence_steps_add = "Insert into [330_standard_sequences] (SequenceID ,SequenceType,ItemID, DefectTypeID, OperationNr,OperationID ,WorkInstruction, ProcessTime, MachineTime,WeightControlFlag ,OperationMultipla ) select ?,?,?,  ?,?,?,  ?,?,? ,?,? ";
 	
 	private static final String strSQL_jobnr_baskets = "SELECT * from [610_baskets] where  basketstatus > 0 and  basketstatus<6  and JobNr like ? order by OperationID, DateTime_Load";
@@ -185,7 +185,7 @@ public class WebApp {
 	
 	private static final String strSQL_load_JobNr_initiate = "update [520_LoadPlan] set Initiated =  1, Initiated_DateTime= getdate() where JobNr =  ? AND (Initiated = 0 or Initiated is null)  ";
 	
-	private static final String strSQL_load_JobNr_receive = "update [520_LoadPlan] set Received =  1 - ISNULL(Received, 0 ) ,  Received_DateTime = iif( Received=1,Null,getdate()) where JobNr =  ?";
+	private static final String strSQL_load_JobNr_receive = "update [520_LoadPlan] set Received =  1 - ISNULL(Received, 0 ) ,  Received_DateTime = iif( Received=1,Null,getdate()) where JobNr =  ? and (Initiated=0 or Initiated is Null)";
 	
 	
 	
@@ -226,7 +226,8 @@ public class WebApp {
 	private static final String strSQL_ow_wip_standard = "INSERT INTO [810_line_stats_quantity]  ( Pcs, Baskets, Field, LineID ) SELECT Sum(Pcs),                   Sum(Baskets),    'wip_standard' , LineID FROM [840_line_stats_wip] WHERE Opr2ID not in ('QI', 'R', 'FQC', 'PCK', 'Prepare') GROUP BY LineID";
 	
 	private static final String strSQL_ow_wip_rework   = "INSERT INTO [810_line_stats_quantity]  ( Pcs, Baskets, Field, LineID ) SELECT Sum(Pcs),                   Sum(Baskets),    'wip_rework' ,   LineID FROM [840_line_stats_wip] WHERE Opr2ID in ('QI', 'R', 'FQC', 'PCK')     GROUP BY LineID";
-	private static final String strSQL_ow_completed    = "INSERT INTO [810_line_stats_quantity]  ( Pcs, Baskets, Field, LineID ) SELECT sum(Good_Pcs_Out),          Count(BasketID), 'completed_this_week', LineID FROM [880_line_stats_control],[620_basket_log] where Current_YearWeek = Load_YearWeek AND OperationID='PCK' GROUP BY LineID ";
+	private static final String strSQL_ow_completed    = "INSERT INTO [810_line_stats_quantity]  ( Pcs, Baskets, Field, LineID ) SELECT sum(Good_Pcs_Out),          sum(iif(SequenceType=1,1,0)), 'completed_this_week', LineID FROM [880_line_stats_control],[620_basket_log] where Current_YearWeek = Load_YearWeek AND OperationID='QI' GROUP BY LineID";
+
 	
 	//  Statistics update, information for dashboard - Utilisation/Efficiency and productivity
 	private static final String strSQL_productivity_delete = "Delete from [850_line_stats_productivity]";
@@ -450,8 +451,10 @@ public class WebApp {
 		JSONHelper.json_db("e",strSQL_session_add_userlog,1,strUserID);
 		JSONHelper.json_db("e",strSQL_session_add_userlog_hist,1,strUserID);
 		
+		
 		// Update user with new status. Update in table "110_Users"
 		JSONHelper.json_db("e",strSQL_session_update_user, 2, "4", strUserID); 
+
 		
 		// Reopen all baskets that are in status 3=Operation Paused, 
 		JSONArray ja = JSONHelper.json_db("e",strSQL_session_reopen_baskets_from_pause ,1 , strUserID);
@@ -748,7 +751,7 @@ public class WebApp {
 			return Response.ok(JSONHelper.json_db("q",strSQL_jobnr_get, 1, strJobNr).getJSONObject(0).toString(1)).build();
 		}
 		// return error code if not found
-		JSONArray Msg = JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"jobnr_not_found");		
+		JSONArray Msg = JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"jobnr_not_found_or_already_initiated");		
 		return Response.status(404).entity(Msg.getJSONObject(0).toString(1)).build();
 
 	}
@@ -898,7 +901,7 @@ public class WebApp {
 		Integer intSequenceType=2;
 				
 		//create record in table 415_Sequences
-		JSONHelper.json_db("e",strSequence_add, 7 , strSequenceID, intSequenceType, strItemID,  strDefectTypeID,strDescpription_EN, strDescpription_TH, intSortID );
+		JSONHelper.json_db("e",strSequence_add, 8 , strSequenceID, intSequenceType, intItemRelationType, strItemID,  strDefectTypeID,strDescpription_EN, strDescpription_TH, intSortID );
 
 		Integer intOperationNr;
 		String strOperationID;
