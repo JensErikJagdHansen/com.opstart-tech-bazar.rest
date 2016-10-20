@@ -1,0 +1,1 @@
+delete from  [330_standard_sequences] where OperationID='Pck'
