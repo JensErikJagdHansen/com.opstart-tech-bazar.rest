@@ -99,7 +99,7 @@
     "started": "Started",
     "restart": "Restart",
     "pause": "Pause",
-    "rework": "Rework",
+    "rework": "Park",
     "end": "End",
     "load": "Load",
     "loadNext": "Load/Next",
@@ -116,7 +116,7 @@
     "loaded": "Loaded",
     "started": "Started",
     "pause": "Pause",
-    "rework": "Rework",
+    "rework": "Park",
     "ended": "Ended"
   },
   "alert": {
