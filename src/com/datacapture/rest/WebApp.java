@@ -32,16 +32,17 @@ import static java.util.concurrent.TimeUnit.*;
 public class WebApp {
 	
 	//Connection version 
-	public static final String strVersion = 		"2.0.5.1b-2";
+	public static final String strVersion = 		"2.0.6.1";
 
 	// If the last last 'z' in x.y.z is different than the in app, then a forced update of app is required of the phone/tablet
-	public static final String strVersion_release = "2.0.5";
+	public static final String strVersion_release = "2.0.6";
 
 	public static final Integer intPrint_JSON = 0 ; //Set =0 if not print JSON, =1 if print JSON
 	
 	//Connection string
 	// Test environment
 //	public static final String dbURL = "jdbc:sqlserver://217.157.143.212:49170;databaseName=pandoradatacapture;user=flowline;password=123";
+//	public static final String dbURL = "jdbc:sqlserver://implement-dev.com:49170;databaseName=pandoradatacapture;user=flowline;password=123";
 	public static final String dbURL = "jdbc:sqlserver://localhost:49170;databaseName=pandoradatacapture;user=flowline;password=123";
 
 
@@ -50,6 +51,9 @@ public class WebApp {
 
 	//USE THIS ONE FOR SERVER
 //	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;user=flowline;password=123";
+//	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;user=DataCaptureWriter;password=Sup3rMan";
+
+	//	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;user=DataCaptureReader;password=datacapture";
 	
 		
 	//Error messages
@@ -77,7 +81,7 @@ public class WebApp {
 	private static final String strSQL_UserName  = "Select UserName from [110_Users] where UserID = ? "; 
 	private static final String strSQL_operation_description  = "Select OperationDescription_EN, OperationDescription_TH from [320_operations] where OperationID = ? ";
 	
-	private static final String strSQL_status_load  = "UPDATE [610_Baskets] SET ImagUrl = ?, LineID = ?, JobNr = ?, ItemID=?, OperationNr = ?, OperationID = ?, WorkInstruction = ?, SequenceType = ?, DefectTypeID = ?, BasketStatus = ?, UserID = ?, " 
+	private static final String strSQL_status_load  = "UPDATE [610_Baskets] SET ImagUrl = ?, LineID = ?, JobNr = ?, ItemID=?, OperationNr = ?, OperationID = ?, WorkInstruction = ?, SequenceType = ?, SequenceID = ?, DefectTypeID = ?, BasketStatus = ?, UserID = ?, " 
 													+ "WorkbenchID = ?, Std_ProcessTime = ?,  Std_MachineTime = ?, Good_Pcs_In = ?, Good_Pcs_Out = ?, Bad_Pcs_In = ?,  Bad_Pcs_Out = ?, Rejected_Pcs_In =? , Rejected_Pcs_Out = ?, Weight_In = ?, Weight_Out = ?, "
 													+ "DateTime_Load = getdate(), DateTime_Start = null, DateTime_End=null, DateTime_Unload = null, "
 													+ "Pause_Time = 0, Rework_Time = 0, Pause_Count = 0, Rework_Count = 0 , Last_Update =   getdate(),  " 
@@ -113,7 +117,7 @@ public class WebApp {
 													+ "DateTime_Unload = getdate(), Last_Update = getdate()  where BasketID = ? AND BasketStatus = 5";
 
 	private static final String strSQL_status_clear_basket = "UPDATE [610_Baskets] SET BasketStatus = 0, ImagUrl = Null, UserID = Null, LineID = Null, WorkbenchID = Null , ItemID =  Null, Load_YearWeek  = Null, Load_Shift = Null,  OperationNr = Null, OperationID=Null , WorkInstruction = Null, "
-									+ "Std_ProcessTime = 0, Std_MachineTime=0,  Last_Update = getdate() , JobNr=Null, SequenceType = 1 , "
+									+ "Std_ProcessTime = 0, Std_MachineTime=0,  Last_Update = getdate() , JobNr=Null, SequenceID = Null, SequenceType = 1 , DefectTypeID = Null , "
 									+ " Good_Pcs_In = 0, Good_Pcs_Out = 0 , Bad_Pcs_in = 0, Bad_Pcs_Out = 0,  Pause_Time=0, Rework_Time=0 ,Rejected_Pcs_in = 0, Rejected_Pcs_out = 0,  " 
 									+ "Weight_In = 0, Weight_Out = 0, DateTime_Load =Null , DateTime_Start =Null , DateTime_End=Null , DateTime_Unload=Null, OperationMultipla=1  where BasketID = ? ";
 	
@@ -128,18 +132,32 @@ public class WebApp {
 	private static final String strSQL_jobnr_get = "SELECT Top 1 *, FamilyLane=Lane from [520_loadplan] WHERE JobNr = ? ";
 	private static final String strSQL_jobnr_item = "SELECT * from [310_Products] where ItemID = ? ";
 	private static final String strSQL_jobnr_sequences = "SELECT [330_standard_sequences].*, [320_operations].OperationDescription_EN, [320_operations].OperationDescription_TH "
-													+" FROM [320_operations] INNER JOIN [330_standard_sequences] ON [320_operations].OperationID = [330_standard_sequences].OperationID where ItemID = ? order by OperationNr ";
+													+" FROM [320_operations] INNER JOIN [330_standard_sequences] ON [320_operations].OperationID = [330_standard_sequences].OperationID where ItemID = ? and SequenceType=1 order by OperationNr ";
+	
+	private static final String strSQL_jobnr_sequences_rework =  "select * from [415_Sequences] where (ItemID= ? or ItemID is Null or ItemID='' ) and SequenceType = 2  order by DefectTypeID, ItemRelationType Desc, SortID " ;
+
+	
+	private static final String strSQL_sequence = "SELECT [330_standard_sequences].*, [320_operations].OperationDescription_EN, [320_operations].OperationDescription_TH "
+			+" FROM [320_operations] INNER JOIN [330_standard_sequences] ON [320_operations].OperationID = [330_standard_sequences].OperationID where SequenceID = ? order by OperationNr ";
+	
+	
+	private static final String strSQL_sequence_def = "Select * from [415_Sequences] where SequenceID = ?";
+	
+	private static final String strSQL_Sequences_MaxSortID_specific  = " Select max(sortID) as SortID from [415_sequences] where ItemID = ? and DefectTypeID = ? and ItemRelationType = 1";
+	private static final String strSQL_Sequences_MaxSortID_generic  = " Select max(sortID) as SortID from [415_sequences] where (ItemID is null or ItemID='') and DefectTypeID = ? and ItemRelationType = 2";
+	
+
+	private static final String strSequence_add = "INSERT INTO [415_sequences] ( SequenceID, SequenceType, ItemRelationType, ItemID, DefectTypeID , SequenceDescription_EN, SequenceDescription_TH, SortID ) SELECT  ?,?,?,  ?,?,?, ?,? ";
+	public static final String strSequence_steps_add = "Insert into [330_standard_sequences] (SequenceID ,SequenceType,ItemID, DefectTypeID, OperationNr,OperationID ,WorkInstruction, ProcessTime, MachineTime,WeightControlFlag ,OperationMultipla ) select ?,?,?,  ?,?,?,  ?,?,? ,?,? ";
+	
 	private static final String strSQL_jobnr_baskets = "SELECT * from [610_baskets] where  basketstatus > 0 and  basketstatus<6  and JobNr like ? order by OperationID, DateTime_Load";
 	
 	//Sequences
-	private static final String strSQL_sequences_standard = "SELECT [330_standard_sequences].*, OperationDescription_EN, OperationDescription_TH FROM [320_operations] INNER JOIN [330_standard_sequences] ON [320_operations].OperationID = [330_standard_sequences].OperationID  where ItemID = ? order by OperationNr";
-	private static final String strSQL_sequences_rework = "SELECT [420_rework_sequences].*, OperationDescription_EN, OperationDescription_TH FROM [420_rework_sequences] INNER JOIN [320_operations] ON [420_rework_sequences].OperationID = [320_operations].OperationID   where DefectTypeID = ? order by OperationNr";
-	private static final String strSQL_sequences_defecttype = "SELECT * from [410_defect_types] where DefectTypeID = ? ";
 	private static final String strSQL_sequences_defecttypes = "Select * from [410_defect_types] order by sortID ";
 	
 	//Standard time
-	private static final String strSQL_standard_time_standard = "SELECT *  FROM [330_standard_sequences] WHERE ItemID = ? AND OperationNr = ? ";
-	private static final String strSQL_standard_time_rework = "SELECT *  FROM [420_rework_sequences] WHERE DefectTypeID = ? AND OperationNr = ? ";
+	private static final String strSQL_standard_time_standard = "SELECT *  FROM [330_standard_sequences] WHERE SequenceID= ? AND OperationNr = ? ";
+
 	
 	//Translations and error msg
 	private static final String strSQL_translations_caption = "SELECT * from [910_ui_captions] where Type=1";
@@ -170,6 +188,8 @@ public class WebApp {
 	
 	private static final String strSQL_load_JobNr_initiate = "update [520_LoadPlan] set Initiated =  1, Initiated_DateTime= getdate() where JobNr =  ? AND (Initiated = 0 or Initiated is null)  ";
 	
+	private static final String strSQL_load_JobNr_receive = "update [520_LoadPlan] set Received =  1 - ISNULL(Received, 0 ) ,  Received_DateTime = iif( Received=1,Null,getdate()) where JobNr =  ? and (Initiated=0 or Initiated is Null)";
+	private static final String strSQL_load_JobNr_force_receive = "update [520_LoadPlan] set Received =  1 - ISNULL(Received, 0 ) ,  Received_DateTime = iif( Received=1,Null,getdate()) where JobNr =  ? and (Received =0 or Received is Null)";
 	
 	
 	
@@ -209,7 +229,8 @@ public class WebApp {
 	private static final String strSQL_ow_wip_standard = "INSERT INTO [810_line_stats_quantity]  ( Pcs, Baskets, Field, LineID ) SELECT Sum(Pcs),                   Sum(Baskets),    'wip_standard' , LineID FROM [840_line_stats_wip] WHERE Opr2ID not in ('QI', 'R', 'FQC', 'PCK', 'Prepare') GROUP BY LineID";
 	
 	private static final String strSQL_ow_wip_rework   = "INSERT INTO [810_line_stats_quantity]  ( Pcs, Baskets, Field, LineID ) SELECT Sum(Pcs),                   Sum(Baskets),    'wip_rework' ,   LineID FROM [840_line_stats_wip] WHERE Opr2ID in ('QI', 'R', 'FQC', 'PCK')     GROUP BY LineID";
-	private static final String strSQL_ow_completed    = "INSERT INTO [810_line_stats_quantity]  ( Pcs, Baskets, Field, LineID ) SELECT sum(Good_Pcs_Out),          Count(BasketID), 'completed_this_week', LineID FROM [880_line_stats_control],[620_basket_log] where Current_YearWeek = Load_YearWeek AND OperationID='PCK' GROUP BY LineID ";
+	private static final String strSQL_ow_completed    = "INSERT INTO [810_line_stats_quantity]  ( Pcs, Baskets, Field, LineID ) SELECT sum(Good_Pcs_Out),          sum(iif(SequenceType=1,1,0)), 'completed_this_week', LineID FROM [880_line_stats_control],[620_basket_log] where Current_YearWeek = Load_YearWeek AND OperationID='QI' GROUP BY LineID";
+
 	
 	//  Statistics update, information for dashboard - Utilisation/Efficiency and productivity
 	private static final String strSQL_productivity_delete = "Delete from [850_line_stats_productivity]";
@@ -232,6 +253,9 @@ public class WebApp {
 											+ "FROM [610_Baskets], [880_line_stats_control]  where Load_YearWeek=Current_YearWeek and  DateTime_Start is not null and (BasketStatus=2 or BasketStatus=5) and OperationID is not null ) AS i Group By i.Type, i.LineID, i.UserID, i.opr2ID" ;
 	
 	private static final String strSQL_productivity_target  = "select * from  [210_lines] where LineID =  ? ";
+	
+	
+	
 	
 	
 	//  Statistics update, information for dashboard - manning
@@ -430,8 +454,10 @@ public class WebApp {
 		JSONHelper.json_db("e",strSQL_session_add_userlog,1,strUserID);
 		JSONHelper.json_db("e",strSQL_session_add_userlog_hist,1,strUserID);
 		
+		
 		// Update user with new status. Update in table "110_Users"
 		JSONHelper.json_db("e",strSQL_session_update_user, 2, "4", strUserID); 
+
 		
 		// Reopen all baskets that are in status 3=Operation Paused, 
 		JSONArray ja = JSONHelper.json_db("e",strSQL_session_reopen_baskets_from_pause ,1 , strUserID);
@@ -446,6 +472,7 @@ public class WebApp {
 	
 	}
 
+	
 	
 		
 //-------------------------------------------------------------------------------------------------------------------------------------------------------	
@@ -512,8 +539,8 @@ public class WebApp {
 		Integer intBad_Pcs_Out = BasketInfo.optInt("Bad_Pcs_Out");
 		Integer intRejected_Pcs_In = BasketInfo.optInt("Rejected_Pcs_In");
 		Integer intRejected_Pcs_Out = BasketInfo.optInt("Rejected_Pcs_Out");
+		String strSequenceID = BasketInfo.optString("SequenceID");
 
-		
 		
 		
 		double dblWeight_In = BasketInfo.optDouble("Weight_In");
@@ -527,118 +554,132 @@ public class WebApp {
 		if (Double.isNaN(dblWeight_Out)) dblWeight_Out = 0;
 
 		
-		String strBtnPressed = BasketInfo.optString("BtnPressed");
+		JSONArray ja_BtnPressed = BasketInfo.optJSONArray("BtnPressed");
 		
 		double dblStdProcessTime = 0;
 		double dblStdMachineTime = 0;
 
 		JSONArray ja = new JSONArray();
-		JSONArray ja_current = new JSONArray();
 		String strLoad_YearWeek = "";
 		Integer intLoad_Shift = 0;
+		String strBtnPressed = null;
+		JSONArray ja_std_time = new JSONArray();
+		JSONArray ja_current = new JSONArray();
 
+		// if more then one button pressed in one shot (functional mode) then cycle through buttons 
+		for (int j=0;j<ja_BtnPressed.length();j++ ) {
+			strBtnPressed = ja_BtnPressed.getString(j);
 		
-		// find the standard time to use for loading a new basket
-		if ( strBtnPressed.equals("load") || strBtnPressed.equals("next") ){
-			if (strBtnPressed.equals("next")) intOperationNr = intOperationNr + 1;
-		
-			// Lookup standard process time and machine time. If standard sequence (1) then look in "300_standard_sequences", else (2) look in "420_rework_seqences" 
-			JSONArray ja_std_time = new JSONArray();
-			if (intSequenceType==1) {
-				ja_std_time = JSONHelper.json_db("q",strSQL_standard_time_standard, 2, strItemID, intOperationNr );}
-			else {
-				ja_std_time = JSONHelper.json_db("q",strSQL_standard_time_rework, 2, strDefectTypeID , intOperationNr); }
-			if (ja_std_time.length()>0 ) {
-				dblStdProcessTime = ja_std_time.getJSONObject(0).optDouble("ProcessTime");
-				dblStdMachineTime = ja_std_time.getJSONObject(0).optDouble("MachineTime");
-				strOperationID = ja_std_time.getJSONObject(0).optString("OperationID");
-				strWorkInstruction = ja_std_time.getJSONObject(0).optString("WorkInstruction");
-				intOperationMultipla =  ja_std_time.getJSONObject(0).optInt("OperationMultipla", 1);
-				}
-		}
-		
-		
-		// do different stuff depending on what button was pressed
-		switch (strBtnPressed.toLowerCase()) {
 
-		case "load":
-			// read current YearWeek, Shift and Hour (updated on server with stored procedure)
-			ja_current = JSONHelper.json_db("q",strSQL_Current,0);
-			strLoad_YearWeek = ja_current.getJSONObject(0).optString("Current_YearWeek");
-			intLoad_Shift = ja_current.getJSONObject(0).optInt("Current_Shift");
+			// find the standard time to use for loading a new basket
+			if ( strBtnPressed.equals("load") || strBtnPressed.equals("next") ){
+				if (strBtnPressed.equals("next")) intOperationNr = intOperationNr + 1;
 			
-			// Load the basket. Update record in "610_basket_status"			
-			ja = JSONHelper.json_db("e",strSQL_status_load, 26, strImagUrl, strLineID, strJobNr, strItemID, intOperationNr, strOperationID, strWorkInstruction, intSequenceType, strDefectTypeID, 1, strUserID, 
-					strWorkbenchID, dblStdProcessTime, dblStdMachineTime, intGood_Pcs_In ,intGood_Pcs_In,  intBad_Pcs_In,  intBad_Pcs_In, intRejected_Pcs_In, intRejected_Pcs_Out, dblWeight_In ,  dblWeight_Out , strLoad_YearWeek, intLoad_Shift, intOperationMultipla, strBasketID);
-			
-			JSONHelper.json_db("e",strSQL_load_JobNr_initiate,1,strJobNr);
-			
-			break;
-
-		case "start":
-
-			
-			ja = JSONHelper.json_db("e",strSQL_status_start, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out ,strBasketID);
-			break;
-		
-		case "start_after_pause":
-			ja = JSONHelper.json_db("e",strSQL_status_start_after_pause, 6, strUserID,  strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
-			break;
-
-		case "start_after_rework":
-			ja = JSONHelper.json_db("e",strSQL_status_start_after_rework, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
-			break;
-		
-		case "pause":
-			ja = JSONHelper.json_db("e",strSQL_status_pause, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
-			break;
-		
-		case "rework":
-			ja = JSONHelper.json_db("e",strSQL_status_rework, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
-			break;
-			
-		case "end": 
-			ja = JSONHelper.json_db("e",strSQL_status_end, 6, strUserID, strWorkbenchID, intGood_Pcs_Out,  intBad_Pcs_Out, intRejected_Pcs_Out,  strBasketID);
-			break;
-			
-		case "unload":
-			//unload in "610_Baskets" and add to log "620_Basket_log"
-			ja = JSONHelper.json_db("e",strSQL_status_unload, 11, strUserID,  strWorkbenchID, intGood_Pcs_In ,intGood_Pcs_Out,  intBad_Pcs_In,  intBad_Pcs_Out,  intRejected_Pcs_In, intRejected_Pcs_Out ,dblWeight_In ,  dblWeight_Out , strBasketID);
-			// if basket not in status (0 records affected)		
-			if (ja.getJSONObject(0).getInt("records_affected")==0 )	{  
-				return Response.status(404).entity(JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"basket_status_not_right").getJSONObject(0).toString(1) ).build();
+				// Lookup standard process time and machine time. If standard sequence (1) then look in "300_standard_sequences", else (2) look in "rework_seqences" 
+				ja_std_time = JSONHelper.json_db("q",strSQL_standard_time_standard, 2, strSequenceID, intOperationNr );
+	
+				if (ja_std_time.length()>0 ) {
+					dblStdProcessTime = ja_std_time.getJSONObject(0).optDouble("ProcessTime");
+					dblStdMachineTime = ja_std_time.getJSONObject(0).optDouble("MachineTime");
+					strOperationID = ja_std_time.getJSONObject(0).optString("OperationID");
+					strWorkInstruction = ja_std_time.getJSONObject(0).optString("WorkInstruction");
+					intOperationMultipla =  ja_std_time.getJSONObject(0).optInt("OperationMultipla", 1);
+					}
 			}
-			JSONHelper.json_db("e",strSQL_status_add_basketlog, 1, strBasketID);
-			JSONHelper.json_db("e",strSQL_status_add_basketlog_hist, 1, strBasketID);
-			JSONHelper.json_db("e",strSQL_status_clear_basket, 1, strBasketID);
 			
-			break;
+			
+			// do different stuff depending on what button was pressed
+			switch (strBtnPressed.toLowerCase()) {
+	
+			case "load":
+				// read current YearWeek, Shift and Hour (updated on server with stored procedure)
+				ja_current = JSONHelper.json_db("q",strSQL_Current,0);
+				strLoad_YearWeek = ja_current.getJSONObject(0).optString("Current_YearWeek");
+				intLoad_Shift = ja_current.getJSONObject(0).optInt("Current_Shift");
 				
-		case "next":
-			//unload in "610_Baskets" and add to log "620_Basket_log"
-			ja = JSONHelper.json_db("e",strSQL_status_unload, 11, strUserID,  strWorkbenchID, intGood_Pcs_In ,intGood_Pcs_Out,  intBad_Pcs_In,  intBad_Pcs_Out, intRejected_Pcs_In, intRejected_Pcs_Out , dblWeight_In ,  dblWeight_Out,  strBasketID);
-			// if basket not in status (0 records affected)		
-			if (ja.getJSONObject(0).getInt("records_affected")==0 )	{  
-				return Response.status(404).entity(JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"basket_status_not_right").getJSONObject(0).toString(1) ).build();
+				if (intSequenceType==2) dblWeight_Out = dblWeight_In; 
+						
+				// Load the basket. Update record in "610_basket_status"			
+				ja = JSONHelper.json_db("e",strSQL_status_load, 27, strImagUrl, strLineID, strJobNr, strItemID, intOperationNr, strOperationID, strWorkInstruction, intSequenceType, strSequenceID, strDefectTypeID, 1, strUserID, 
+						strWorkbenchID, dblStdProcessTime, dblStdMachineTime, intGood_Pcs_In ,intGood_Pcs_In,  intBad_Pcs_In,  intBad_Pcs_In, intRejected_Pcs_In, intRejected_Pcs_In, dblWeight_In ,  dblWeight_Out , strLoad_YearWeek, intLoad_Shift, intOperationMultipla, strBasketID);
+				
+				JSONArray ja_init = JSONHelper.json_db("e",strSQL_load_JobNr_initiate,1,strJobNr);
+				
+				// if initiated then set as recieved
+				Integer k = ja_init.getJSONObject(0).optInt("records_affected");
+				if ( k != 0)  { JSONHelper.json_db("e",strSQL_load_JobNr_force_receive,1,strJobNr); } 
+				
+				break;
+	
+			case "start":
+	
+				
+				ja = JSONHelper.json_db("e",strSQL_status_start, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out ,strBasketID);
+				break;
+			
+			case "start_after_pause":
+				ja = JSONHelper.json_db("e",strSQL_status_start_after_pause, 6, strUserID,  strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
+				break;
+	
+			case "start_after_rework":
+				ja = JSONHelper.json_db("e",strSQL_status_start_after_rework, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
+				break;
+			
+			case "pause":
+				ja = JSONHelper.json_db("e",strSQL_status_pause, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
+				break;
+			
+			case "rework":
+				ja = JSONHelper.json_db("e",strSQL_status_rework, 6, strUserID, strWorkbenchID, intGood_Pcs_Out, intBad_Pcs_Out, intRejected_Pcs_Out, strBasketID);
+				break;
+				
+			case "end": 
+				ja = JSONHelper.json_db("e",strSQL_status_end, 6, strUserID, strWorkbenchID, intGood_Pcs_Out,  intBad_Pcs_Out, intRejected_Pcs_Out,  strBasketID);
+				break;
+				
+			case "unload":
+				//unload in "610_Baskets" and add to log "620_Basket_log"
+				ja = JSONHelper.json_db("e",strSQL_status_unload, 11, strUserID,  strWorkbenchID, intGood_Pcs_In ,intGood_Pcs_Out,  intBad_Pcs_In,  intBad_Pcs_Out,  intRejected_Pcs_In, intRejected_Pcs_Out ,dblWeight_In ,  dblWeight_Out , strBasketID);
+				// if basket not in status (0 records affected)		
+				if (ja.getJSONObject(0).getInt("records_affected")==0 )	{  
+					return Response.status(404).entity(JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"basket_status_not_right").getJSONObject(0).toString(1) ).build();
+				}
+				JSONHelper.json_db("e",strSQL_status_add_basketlog, 1, strBasketID);
+				JSONHelper.json_db("e",strSQL_status_add_basketlog_hist, 1, strBasketID);
+				JSONHelper.json_db("e",strSQL_status_clear_basket, 1, strBasketID);
+				
+				break;
+					
+			case "next":
+				//unload in "610_Baskets" and add to log "620_Basket_log"
+				ja = JSONHelper.json_db("e",strSQL_status_unload, 11, strUserID,  strWorkbenchID, intGood_Pcs_In ,intGood_Pcs_Out,  intBad_Pcs_In,  intBad_Pcs_Out, intRejected_Pcs_In, intRejected_Pcs_Out , dblWeight_In ,  dblWeight_Out,  strBasketID);
+				// if basket not in status (0 records affected)		
+				if (ja.getJSONObject(0).getInt("records_affected")==0 )	{  
+					return Response.status(404).entity(JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"basket_status_not_right").getJSONObject(0).toString(1) ).build();
+				}
+				
+				// put basket in to log and into log_hist
+				JSONHelper.json_db("e",strSQL_status_add_basketlog, 1, strBasketID);
+				JSONHelper.json_db("e",strSQL_status_add_basketlog_hist, 1, strBasketID);
+				JSONHelper.json_db("e",strSQL_status_clear_basket, 1, strBasketID);
+	
+				// read current YearWeek, Shift and Hour (updated on server with stored procedure)
+				ja_current = JSONHelper.json_db("q",strSQL_Current,0);
+				strLoad_YearWeek = ja_current.getJSONObject(0).optString("Current_YearWeek");
+				intLoad_Shift = ja_current.getJSONObject(0).optInt("Current_Shift");
+				strWorkbenchID="";
+				
+				
+				
+				// Load the basket. Update record in "610_baskets"			
+				ja = JSONHelper.json_db("e",strSQL_status_load, 27, strImagUrl, strLineID, strJobNr, strItemID, intOperationNr, strOperationID, strWorkInstruction, intSequenceType, strSequenceID, strDefectTypeID, 1, strUserID, 
+						strWorkbenchID, dblStdProcessTime, dblStdMachineTime, intGood_Pcs_Out , intGood_Pcs_Out,  intBad_Pcs_Out,  intBad_Pcs_Out ,intRejected_Pcs_Out, intRejected_Pcs_Out,   dblWeight_Out ,  0 , strLoad_YearWeek, intLoad_Shift, intOperationMultipla, strBasketID); 
+	
+				break;
 			}
-			
-			// put basket in to log and into log_hist
-			JSONHelper.json_db("e",strSQL_status_add_basketlog, 1, strBasketID);
-			JSONHelper.json_db("e",strSQL_status_add_basketlog_hist, 1, strBasketID);
-			JSONHelper.json_db("e",strSQL_status_clear_basket, 1, strBasketID);
-
-			// read current YearWeek, Shift and Hour (updated on server with stored procedure)
-			ja_current = JSONHelper.json_db("q",strSQL_Current,0);
-			strLoad_YearWeek = ja_current.getJSONObject(0).optString("Current_YearWeek");
-			intLoad_Shift = ja_current.getJSONObject(0).optInt("Current_Shift");
-			
-			// Load the basket. Update record in "610_baskets"			
-			ja = JSONHelper.json_db("e",strSQL_status_load, 26, strImagUrl, strLineID, strJobNr, strItemID, intOperationNr, strOperationID, strWorkInstruction, intSequenceType, strDefectTypeID, 1, strUserID, 
-					strWorkbenchID, dblStdProcessTime, dblStdMachineTime, intGood_Pcs_Out , intGood_Pcs_Out,  intBad_Pcs_Out,  intBad_Pcs_Out ,intRejected_Pcs_Out, intRejected_Pcs_Out,   dblWeight_Out ,  0 , strLoad_YearWeek, intLoad_Shift, intOperationMultipla, strBasketID); 
-
-			break;
 		}
-
+		
+		
 		// if basket not in status (0 records affected)		
 		if (ja.getJSONObject(0).getInt("records_affected")==0 )	{  
 			return Response.status(404).entity(JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"basket_status_not_right").getJSONObject(0).toString(1) ).build();
@@ -657,11 +698,13 @@ public class WebApp {
 	public Response return_jobinfo(@PathParam("JobNr") String strJobNr) throws Exception {
 
 		String strItemID = null;
+		String strSequenceID= null;
 
 		JSONArray ja_jobnr = new JSONArray();
 		JSONArray ja_item = new JSONArray();
 		JSONObject jo_out = new JSONObject();
 		JSONArray ja_sequence_steps = new JSONArray();
+		JSONArray ja_rework = new JSONArray();
 		
 
 		// find the item ID from the job nr. Look up in table "520_LoadPlan" 
@@ -681,17 +724,47 @@ public class WebApp {
 				// Put everything into return object
 				if (ja_sequence_steps.length()>0){
 					
-					jo_out.put("Steps",ja_sequence_steps);
-					return Response.ok(jo_out.toString(1)).build();
+					JSONObject jo_steps = new JSONObject();
+					jo_steps.put("Steps", ja_sequence_steps);
+					jo_out.put("StandardSequence",jo_steps);
+					
+					strSequenceID = ja_sequence_steps.getJSONObject(0).optString("SequenceID");
+					jo_out.getJSONObject("StandardSequence").put("SequenceID",strSequenceID);
+
 				}
+				ja_rework  =  JSONHelper.json_db("q",strSQL_jobnr_sequences_rework, 1, strItemID);
+				
+				jo_out.put("ReworkSequences",ja_rework);
+				
+				return Response.ok(jo_out.toString(1)).build();
 			}
 		}
-		
+
 		// return error code if not found
 		JSONArray Msg = JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"jobnr_not_found");		
 		return Response.status(404).entity(Msg.getJSONObject(0).toString(1)).build();
 		}
 
+	//toggle job
+	@Path("/job/{JobNr}/toggle_receive")
+	@POST
+	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response return_toggle_job_received(@PathParam("JobNr") String strJobNr) throws Exception {
+		
+		JSONArray ja  =  JSONHelper.json_db("e",strSQL_load_JobNr_receive,1,strJobNr);
+		
+		Integer i = ja.getJSONObject(0).optInt("records_affected");
+		if (i != 0) {
+			return Response.ok(JSONHelper.json_db("q",strSQL_jobnr_get, 1, strJobNr).getJSONObject(0).toString(1)).build();
+		}
+		// return error code if not found
+		JSONArray Msg = JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"jobnr_not_found_or_already_initiated");		
+		return Response.status(404).entity(Msg.getJSONObject(0).toString(1)).build();
+
+	}
+	
+	
 	//display all baskets for a given job
 	@Path("/baskets/{JobNr}")
 	@GET
@@ -699,7 +772,7 @@ public class WebApp {
 	public Response return_baskets(@PathParam("JobNr") String strJobNr) throws Exception {
 		
 			String strStar = "*";
-			if ( strStar.equals(strJobNr)  )  strJobNr = "%";
+			if ( strStar.equals(strJobNr)  )   strJobNr = "%";
 			return Response.ok(JSONHelper.json_db("q",strSQL_jobnr_baskets, 1, strJobNr).toString(1)).build();}
 
 		
@@ -734,7 +807,6 @@ public class WebApp {
 		JSONArray ja_operations = JSONHelper.json_db("q",strSQL_jobnr_overview, 3,strLineID, strJobNr, strItemID);
 		
 		JSONArray ja_operations_total = JSONHelper.json_db("q",strSQL_jobnr_overview_total, 3,strLineID, strJobNr, strItemID);
-
 		
 		JSONObject jo = new JSONObject();
 		JSONArray ja_jobnr  =  JSONHelper.json_db("q",strSQL_jobnr_get, 1, strJobNr);
@@ -759,28 +831,7 @@ public class WebApp {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------	
 //	Standard and rework sequences
-		
-	@Path("/sequence/standard/{ItemID}")
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response return_sequence_standard(@PathParam("ItemID") String strItemID) throws Exception {
 
-		// find sequence from item ID. Look up in table "330_standard_sequences" 
-		JSONArray ja  =  JSONHelper.json_db("q",strSQL_sequences_standard, 1, strItemID);
-
-		// Find the product information. Put into object ja_out. Look up in table "310_Product"  
-		if (ja.length()>0 ) {
-
-			String str = ja.toString(1);
-			return Response.ok(str).build();
-		}
-		
-		// return error code if not found
-		JSONArray Msg = JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"sequence_not_found_standard");	
-		String str = Msg.getJSONObject(0).toString(1).replace("??", strItemID);
-		return Response.status(404).entity(str).build();
-	}
-	
 	
 	@Path("/sequence/defecttypes")
 	@GET
@@ -789,30 +840,102 @@ public class WebApp {
 		return Response.ok(
 				JSONHelper.json_db("q",strSQL_sequences_defecttypes, 0).toString(1)).build();}
 	
-	
-	@Path("/sequence/rework/{DefectTypeID}")
+
+	@Path("/sequence/{SequenceID}")
 	@GET
+	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response return_sequence_rework(@PathParam("DefectTypeID") String strDefectTypeID) throws Exception {
+	public Response return_sequence(@PathParam("SequenceID") String strSequenceID) throws Exception {
 
-		// find object for for the defect type
-		JSONObject jo_out  =  JSONHelper.json_db("q",strSQL_sequences_defecttype, 1, strDefectTypeID).getJSONObject(0);
-			
-		// find sequence from item ID. Look up in table "420_rework_sequences" 
-		JSONArray ja  =  JSONHelper.json_db("q",strSQL_sequences_rework, 1, strDefectTypeID);
-
+		// current only working for rework sequences
 		
-		// Find the product information. Put into object ja_out. Look up in table "310_Product"  
-		if (ja.length()>0 ) {
-
-			jo_out.put("Steps", ja);
-			return Response.ok(jo_out.toString(1)).build();}
+		JSONObject jo_out = new JSONObject();
+		
+			
+		// find sequence from item ID. Look up in table "rework_sequences" 
+		JSONArray ja_sequence =  JSONHelper.json_db("q",strSQL_sequence, 1, strSequenceID);
+		JSONArray ja_def = JSONHelper.json_db("q",  strSQL_sequence_def,1,strSequenceID);
+		
+		
+		// Find the sequence information  
+		if (ja_sequence.length()>0 && ja_def.length()>0) {
+			jo_out = ja_def.getJSONObject(0);
+			jo_out.put("Steps", ja_sequence);
+			return Response.ok(jo_out.toString(1)).build();
+		}
 		
 		// return error code if not found
 		JSONArray Msg = JSONHelper.json_db("q",strSQL_ErrMsg, 1 ,"sequence_not_found_rework");	
-		String str = Msg.getJSONObject(0).toString(1).replace("??", strDefectTypeID);
+		String str = Msg.getJSONObject(0).toString(1).replace("??", strSequenceID);
 		return Response.status(404).entity(str).build();
+		
+		
 	}
+
+	
+
+	@Path("/sequence/rework/")
+	@POST
+	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response post_rework_sequence(String strInfoKey) throws Exception { 
+		// current only working for rework sequences
+		
+		// Parse the string to json object
+		JSONObject jo_InfoKey = new JSONObject(strInfoKey);
+		String strItemID = jo_InfoKey.optString("ItemID");
+		String strDefectTypeID = jo_InfoKey.optString("DefectTypeID");
+		String strDescpription_EN  = jo_InfoKey.optString("Description_EN");
+		String strDescpription_TH  = jo_InfoKey.optString("Description_TH");
+		Integer intItemRelationType = 1;
+
+		
+		// if generic
+		if (strItemID == null  || strItemID.length() ==0) intItemRelationType=2;
+		
+	
+		JSONArray ja_sequence = jo_InfoKey.getJSONArray("Sequence");
+
+		JSONArray ja_SortID = new JSONArray();
+		if  (intItemRelationType== 1) {
+			ja_SortID= JSONHelper.json_db("q",strSQL_Sequences_MaxSortID_specific, 2, strItemID, strDefectTypeID);
+		}
+		else {
+			ja_SortID= JSONHelper.json_db("q",strSQL_Sequences_MaxSortID_generic, 1,  strDefectTypeID);
+		} 
+		
+		Integer intSortID = ja_SortID.getJSONObject(0).optInt("SortID") + 1;
+		String strSequenceID = "rwk-" + strItemID + "-" + strDefectTypeID + "-" + intSortID;		
+		Integer intSequenceType=2;
+				
+		//create record in table 415_Sequences
+		JSONHelper.json_db("e",strSequence_add, 8 , strSequenceID, intSequenceType, intItemRelationType, strItemID,  strDefectTypeID,strDescpription_EN, strDescpription_TH, intSortID );
+
+		Integer intOperationNr;
+		String strOperationID;
+		String strWorkInstruction;
+		JSONObject jo = new JSONObject() ;
+		
+		//Insert the steps into 330_standard_sequences
+		for (int i=0;i<ja_sequence.length();i++ ) {
+
+			jo = ja_sequence.getJSONObject(i);
+			intOperationNr  = jo.optInt("OperationNr");
+			strOperationID = jo.optString("OperationID");
+			strWorkInstruction = jo.optString("WorkInstruction");
+			
+			JSONHelper.json_db("e",strSequence_steps_add, 11 ,strSequenceID, intSequenceType, strItemID, strDefectTypeID,intOperationNr,strOperationID ,strWorkInstruction, 0 , 0 , 0 ,1 );
+		
+		}
+		
+		return return_sequence(strSequenceID) ;
+	}
+
+	
+	
+	
+	
+	
 	
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------	
@@ -998,14 +1121,20 @@ public class WebApp {
 		JSONArray ja_plan = JSONHelper.json_db("q",strSQL_get_status_target,3,strLineID, intType, intShift);
 		JSONArray ja_actual = JSONHelper.json_db("q",strSQL_get_status_actual,3,strLineID, intType, intShift);
 	
+
+		
 		Integer i_p=ja_plan.length();
 		Integer i_a=ja_actual.length();
 		
+		//until here every think is ok at 23.00 check the generation of the JSON - The problem accurs when plan goes from 22 to 05 and actual only from 22 to 23
+		//Solution: use the shift number or the day number -- add to query
 		
 		// finds the start and the end clock
-		Integer intStart = Integer.min((i_p == 0) ? 999: ja_plan.getJSONObject(0).optInt("x")                 , (i_a ==0) ? 999 : ja_actual.optJSONObject(0).getInt("x")); 
-		Integer intEnd =   Integer.max((i_p == 0) ? -1 : ja_plan.getJSONObject(ja_plan.length()-1).optInt("x"), (i_a ==0) ? -1  : ja_actual.getJSONObject(ja_actual.length()-1).optInt("x"));
+		Integer intStart = Integer.min((i_p == 0) ? 999 : ja_plan.getJSONObject(0).optInt("x")                 , (i_a ==0) ? 999 : ja_actual.optJSONObject(0).getInt("x")); 
+		Integer intEnd =   Integer.max( (i_p == 0) ? -1 : ja_plan.getJSONObject(ja_plan.length()-1).optInt("x"), (i_a ==0) ? -1  : ja_actual.getJSONObject(ja_actual.length()-1).optInt("x"));
 
+		
+		
 		
 		//Calculate number of hours in shift
 		Integer d = intEnd-intStart +1 ;
