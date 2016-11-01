@@ -1,30 +1,17 @@
 package com.datacapture.rest;
 
-
 // Version 2016.09.21 14.30
 
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.sql.Date;
-
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import org.json.JSONObject;
-
-
 import org.json.JSONArray;
-import org.json.JSONException;
 import static java.util.concurrent.TimeUnit.*;
 
 
@@ -54,6 +41,10 @@ public class WebApp {
 //	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;user=DataCaptureWriter;password=Sup3rMan";
 
 	//	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;user=DataCaptureReader;password=datacapture";
+	
+
+	
+	private static final JSONHelper JSONHelper = new JSONHelper(dbURL,intPrint_JSON);
 	
 		
 	//Error messages
@@ -264,7 +255,7 @@ public class WebApp {
 	private static final String strSQL_manning_plan =	"INSERT INTO [860_line_stats_manning] (LineID, Field, OperationID, Manning) select LineId, Field = 'manning_plan', operationID, Manning  from [230_Line_Manning]"; 
 	
 	
-//  Statistics update, sequence familty
+//  St½atistics update, sequence familty
 	private static final String strSQL_seqfamily_delete = "Delete from [895_line_stats_qty_by_seqfamily]";
 	private static final String strSQL_seqfamily_plan = "insert into [895_line_stats_qty_seqfamily] (LineId, SeqFamily, Type, Lane, Quantity)  select LineId, SeqFamily, 1, Lane, sum(Quantity) from [520_loadplan], [880_line_stats_control]  where yearweek = Current_YearWeek group by lineID, SeqFamily, Lane ";
 	
@@ -1489,133 +1480,6 @@ public class WebApp {
 		}
 		
 	}
-	
-	
-	private static class JSONHelper {
-			
-		public static JSONArray json_db(String strType, String strSQL, int intWhereClause, Object  ... objClauseParamArg ) throws Exception  {
-			//  strType				"q", "e"
-			//	strSQL 				SQL statement, including ? in where clauses
-			//  intWhereClause  	Number of ? to replace
-			//  strClauseParamArg 	list of parameter values to replace in ?
-			
-			Connection conn = null;
-			int i;
-		  try {
-			  Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-			  conn = DriverManager.getConnection(dbURL);
-			  if (conn != null) {
-	            	PreparedStatement statement =  conn.prepareStatement(strSQL);
-	            	// SQL Injection 
-	            	for (i = 1; i <=intWhereClause; i++ ) {
-	            		if (objClauseParamArg[i-1] instanceof String) statement.setString(i, (String) objClauseParamArg[i-1] );
-	            		if (objClauseParamArg[i-1] instanceof Integer) statement.setInt(i, (Integer) objClauseParamArg[i-1] );
-	            		if (objClauseParamArg[i-1] instanceof Double) statement.setDouble(i, (double) objClauseParamArg[i-1] );
-	            		if (objClauseParamArg[i-1] instanceof Date) statement.setDate(i, (Date) objClauseParamArg[i-1] );
-	            		if (objClauseParamArg[i-1] instanceof Long ) statement.setLong(i, (long) objClauseParamArg[i-1] );
-	            	}
-	            	JSONArray ja = new JSONArray();
-	            	//select query or execution
-	            	if ( strType=="q" ) {
-		            	ResultSet result = statement.executeQuery();
-		            	ja  =  convertToJSON(result);
-	            	}
-	            	else {
-		            	Integer result = statement.executeUpdate();
-		            	JSONObject jo = new JSONObject();
-		            	jo.put("records_affected", result);
-		            	ja.put(jo);
-	            	}
-	            	if (intPrint_JSON==1) { System.out.println(ja.toString(1)); }
-	            	return ja;
-	            }
-	        } catch (SQLException ex) {
-	            ex.printStackTrace();
-	           
-	        } finally {
-	            try {
-	                if (conn != null && !conn.isClosed()) {
-	                    conn.close();
-	                }
-	            } catch (SQLException ex) {
-	                ex.printStackTrace();
-	            }
-	        }
-		   return null;
-	    }
-
-		public static JSONArray convertToJSON(ResultSet resultSet) 
-		            throws Exception {
-				/**
-			     * Convert a result set into a JSON Array
-			     * @param resultSet
-			     * @return a JSONArray
-			     * @throws Exception
-			     */
-				JSONArray jsonArray = new JSONArray();
-		        
-		        while (resultSet.next()) {
-		            int total_cols = resultSet.getMetaData().getColumnCount();
-		            JSONObject obj = new JSONObject();
-
-		            //Next line is testing purposes, JEH
-		            //obj.put("Row", resultSet.getRow());
-
-		            
-		            for (int i = 0; i < total_cols; i++) {
-		                obj.put(resultSet.getMetaData().getColumnLabel(i + 1), resultSet.getObject(i + 1) );
-		            }
-		            jsonArray.put(obj);
-		        }
-		        return jsonArray;
-		    }	
-
-		public static String SQL_build_for_update(JSONObject ja) throws JSONException {
-			String strSQL = " ";
- 			for(String key : JSONObject.getNames(ja))
-			{
-			  strSQL =  strSQL + key + " =  " + ja.get(key) + " , ";
-			}
-			strSQL = strSQL.substring(0,strSQL.length()-2);
-				
- 			return strSQL;
-			
-		}
-		
-		public static JSONObject json_merge(JSONObject Obj1, JSONObject Obj2) throws JSONException{
-		
-			JSONObject merged = new JSONObject(Obj1, JSONObject.getNames(Obj1));
-			for(String key : JSONObject.getNames(Obj2))
-			{
-			  merged.put(key, Obj2.get(key));
-			}
-			
-		return merged;
-		
-		}
-		
-		public static JSONArray json_merge_array(String key, JSONArray Source, JSONArray Target) throws JSONException{
-			// Note: Type of "key" needs to be an Integer.
-			
-			for (int i=0;i<Target.length();i++) {
-				for (int j=0;j<Source.length();j++){
-					JSONObject jo = Source.getJSONObject(j);
-					
-					if ( Target.getJSONObject(i).optInt(key) ==  jo.optInt(key) ) {
-						for(String key2 : JSONObject.getNames(jo))
-						{
-							Target.getJSONObject(i).put(key2, jo.get(key2));
-						}
-					}
-				}
-			}		
-			
-		return Target;
-		
-		}
-
-		
-	}	
 	
 }
 
