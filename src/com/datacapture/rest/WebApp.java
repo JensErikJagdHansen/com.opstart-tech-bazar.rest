@@ -1175,8 +1175,8 @@ public class WebApp {
 			if ( jo.opt("Pcs_Target"    ) == null) 									   { ja.getJSONObject(i).put("Pcs_Target"    , 0); }
 			if ( jo.opt("Baskets_Target") == null)                                     { ja.getJSONObject(i).put("Baskets_Target", 0); }
 			
-			if ( jo.getInt("index") < intEnd_Index_Actual &&  jo.opt("Pcs_Actual") == null) 	   { ja.getJSONObject(i).put("Pcs_Actual", 0); }
-			if ( jo.getInt("index") < intEnd_Index_Actual &&  jo.opt("Baskets_Actual") == null)  { ja.getJSONObject(i).put("Baskets_Actual", 0); }
+			if ( jo.getInt("index") <= intEnd_Index_Actual &&  jo.opt("Pcs_Actual") == null) 	   { ja.getJSONObject(i).put("Pcs_Actual", 0); }
+			if ( jo.getInt("index") <= intEnd_Index_Actual &&  jo.opt("Baskets_Actual") == null)  { ja.getJSONObject(i).put("Baskets_Actual", 0); }
 		}
 		
 		return Response.ok(ja.toString(1)).build();
