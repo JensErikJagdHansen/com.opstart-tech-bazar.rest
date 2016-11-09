@@ -2,6 +2,7 @@
     <wb-module deploy-name="com.datacapture.rest">
         <wb-resource deploy-path="/" source-path="/WebContent" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/Tests"/>
         <property name="context-root" value="com.datacapture.rest"/>
         <property name="java-output-path" value="/com.datacapture.rest/build/classes"/>
     </wb-module>
