@@ -1117,13 +1117,7 @@ public class WebApp {
 		Integer i_p=ja_plan.length();
 		Integer i_a=ja_actual.length();
 		
-		//until here every think is ok at 23.00 check the generation of the JSON - The problem accurs when plan goes from 22 to 05 and actual only from 22 to 23
-		//Solution: use the shift number or the day number -- add to query
-		
 		// finds the start and the end clock
-/*    	Integer intStart = Integer.min( (i_p == 0) ? 999 : ja_plan.getJSONObject(0).optInt("x")                 , (i_a ==0) ? 999 : ja_actual.optJSONObject(0).getInt("x")); 
-    	Integer intEnd =   Integer.max( (i_p == 0) ? -1 : ja_plan.getJSONObject(ja_plan.length()-1).optInt("x"), (i_a ==0) ? -1  : ja_actual.getJSONObject(ja_actual.length()-1).optInt("x"));
-*/
 		Integer intPlan_Start = (i_p == 0) ? 999 : ja_plan.getJSONObject(0).optInt("x");
 		Integer intActual_Start = (i_a ==0) ? 999 : ja_actual.optJSONObject(0).getInt("x");		
 		
@@ -1143,7 +1137,6 @@ public class WebApp {
 		if (d<0) d=d+24;
 		
 		
-		//jens use to build actual (intType==2) ? intHour : intShift ;
 		
 		//Build JSON Array with right x axis, but otherwise empty
 		JSONArray ja = new JSONArray();
