@@ -76,7 +76,6 @@ public class JSONHelper {
 	}
 	
 	
-	
 	public static JSONArray convertToJSON(ResultSet resultSet) 
 	            throws Exception {
 			/**
@@ -103,7 +102,6 @@ public class JSONHelper {
 	        return jsonArray;
 	    }	
 	
-
 	
 	public JSONObject json_merge(JSONObject Obj1, JSONObject Obj2) throws JSONException{
 	

@@ -1095,6 +1095,9 @@ public class WebApp {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response get_plan_actual(String strInfoKey) throws Exception { 
 
+		// Type = 1 show by the shifts
+		// Type = 2 show by the hours
+
 		// Parse the string to json object
 		JSONObject jo_InfoKey = new JSONObject(strInfoKey);
 		String strLineID = jo_InfoKey.optString("LineID");
@@ -1110,7 +1113,6 @@ public class WebApp {
 		JSONArray ja_plan = JSONHelper.json_db("q",strSQL_get_status_target,3,strLineID, intType, intShift);
 		JSONArray ja_actual = JSONHelper.json_db("q",strSQL_get_status_actual,3,strLineID, intType, intShift);
 	
-
 		
 		Integer i_p=ja_plan.length();
 		Integer i_a=ja_actual.length();
@@ -1119,16 +1121,29 @@ public class WebApp {
 		//Solution: use the shift number or the day number -- add to query
 		
 		// finds the start and the end clock
-		Integer intStart = Integer.min((i_p == 0) ? 999 : ja_plan.getJSONObject(0).optInt("x")                 , (i_a ==0) ? 999 : ja_actual.optJSONObject(0).getInt("x")); 
-		Integer intEnd =   Integer.max( (i_p == 0) ? -1 : ja_plan.getJSONObject(ja_plan.length()-1).optInt("x"), (i_a ==0) ? -1  : ja_actual.getJSONObject(ja_actual.length()-1).optInt("x"));
+/*    	Integer intStart = Integer.min( (i_p == 0) ? 999 : ja_plan.getJSONObject(0).optInt("x")                 , (i_a ==0) ? 999 : ja_actual.optJSONObject(0).getInt("x")); 
+    	Integer intEnd =   Integer.max( (i_p == 0) ? -1 : ja_plan.getJSONObject(ja_plan.length()-1).optInt("x"), (i_a ==0) ? -1  : ja_actual.getJSONObject(ja_actual.length()-1).optInt("x"));
+*/
+		Integer intPlan_Start = (i_p == 0) ? 999 : ja_plan.getJSONObject(0).optInt("x");
+		Integer intActual_Start = (i_a ==0) ? 999 : ja_actual.optJSONObject(0).getInt("x");		
+		
+		Integer intPlan_End = (i_p == 0) ? -1 : ja_plan.getJSONObject(ja_plan.length()-1).optInt("x");
+		Integer intActual_End = (i_a ==0) ? -1  : ja_actual.getJSONObject(ja_actual.length()-1).optInt("x");
 
+
+		if ( intPlan_End < intPlan_Start )      intPlan_End = intPlan_End+24;
+		if ( intActual_End < intActual_Start )  intActual_End = intActual_End+24; 
+
+		Integer intStart = Integer.min(intPlan_Start,intActual_Start);
+		Integer intEnd = Integer.max(intPlan_End, intActual_End);
 		
-		
-		
+	
 		//Calculate number of hours in shift
 		Integer d = intEnd-intStart +1 ;
 		if (d<0) d=d+24;
 		
+		
+		//jens use to build actual (intType==2) ? intHour : intShift ;
 		
 		//Build JSON Array with right x axis, but otherwise empty
 		JSONArray ja = new JSONArray();
