@@ -42,10 +42,8 @@ public class WebApp {
 
 	//	public static final String dbURL = "jdbc:sqlserver://THBAN1SRV197:1433;databaseName=pandoradatacapture;user=DataCaptureReader;password=datacapture";
 	
-
 	
 	private static final JSONHelper JSONHelper = new JSONHelper(dbURL,intPrint_JSON);
-	
 		
 	//Error messages
 	private static final String strSQL_ErrMsg =  " select  * from [910_ui_captions] where Type = 2 and CaptionID = ?";
