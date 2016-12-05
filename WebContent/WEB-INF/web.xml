@@ -21,7 +21,7 @@
 </servlet-class>
   <init-param>
     <param-name>com.sun.jersey.config.property.packages</param-name>
-    <param-value>com.opstart-tech-bazar.rest</param-value>
+    <param-value>com.opsstrattechbazar.rest</param-value>
 		
   </init-param>
 	
