@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
-    <wb-module deploy-name="com.wateralert.rest">
+    <wb-module deploy-name="com.opstart-tech-bazar.rest">
         <wb-resource deploy-path="/" source-path="/WebContent" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
-        <property name="context-root" value="com.wateralert.rest"/>
-        <property name="java-output-path" value="/com.wateralert.rest/build/classes"/>
+        <property name="context-root" value="com.opstart-tech-bazar.rest"/>
+        <property name="java-output-path" value="/com.opstart-tech-bazar.rest/build/classes"/>
     </wb-module>
 </project-modules>
