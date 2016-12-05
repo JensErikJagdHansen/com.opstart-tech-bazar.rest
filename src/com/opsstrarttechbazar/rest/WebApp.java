@@ -1,4 +1,4 @@
-package com.opstarttechbazar.rest;
+package com.opsstrarttechbazar.rest;
 
 // Version 2016.12.05 14.30
 
@@ -11,9 +11,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.json.JSONObject;
-
-import com.opstarttechbazar.rest.JSONHelper;
-
 import org.json.JSONArray;
 import static java.util.concurrent.TimeUnit.*;
 
@@ -25,11 +22,23 @@ public class WebApp {
 	public static final Integer intPrint_JSON = 0 ; //Set =0 if not print JSON, =1 if print JSON
 
 	public static final String dbURL = "jdbc:sqlserver://localhost:49170;databaseName=opstarttechbazar;user=flowline;password=123";
+	//Connection version 
+	public static final String strVersion = 		"2.0.4.16d";
 
+	
 	
 	private static final JSONHelper JSONHelper = new JSONHelper(dbURL,intPrint_JSON);
 	
 	private static final String strSQL_insert_beacon_log =  "Insert Into beacon_log Values (?,?,?,?, ?,?,?,?, ?)";	
+	
+	
+	@Path("/version")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response return_version() throws Exception {return Response.ok(strVersion).build() ;}
+
+	
+	
 	
 	@Path("/log")
 	@POST
