@@ -1,4 +1,4 @@
-package com.opsstrarttechbazar.rest;
+package com.opsstrattechbazar.rst;
 
 // Version 2016.12.05 14.30
 
@@ -23,7 +23,7 @@ public class WebApp {
 
 	public static final String dbURL = "jdbc:sqlserver://localhost:49170;databaseName=opstarttechbazar;user=flowline;password=123";
 	//Connection version 
-	public static final String strVersion = 		"2.0.4.16d";
+	public static final String strVersion = "2.0.4.16d";
 
 	
 	

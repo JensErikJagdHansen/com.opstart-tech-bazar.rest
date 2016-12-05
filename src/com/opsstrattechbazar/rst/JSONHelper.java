@@ -1,4 +1,4 @@
-package com.opsstrarttechbazar.rest;
+package com.opsstrattechbazar.rst;
 
 import java.sql.Connection;
 import java.sql.Date;
