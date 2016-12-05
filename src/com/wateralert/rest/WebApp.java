@@ -20,10 +20,12 @@ public class WebApp {
 	
 	//Connection version 
 	public static final Integer intPrint_JSON = 0 ; //Set =0 if not print JSON, =1 if print JSON
-	public static final String dbURL = "jdbc:sqlserver://implement-dev.com:49170;databaseName=wateralert;user=flowline;password=123";
 
+	public static final String dbURL = "jdbc:sqlserver://localhost:49170;databaseName=wateralert;user=flowline;password=123";
+	
 	private static final JSONHelper JSONHelper = new JSONHelper(dbURL,intPrint_JSON);
 		
+	
 	
 }
 
