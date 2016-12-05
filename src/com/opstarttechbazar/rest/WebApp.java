@@ -1,4 +1,4 @@
-package com.wateralert.rest;
+package com.opstarttechbazar.rest;
 
 // Version 2016.09.21 14.30
 

@@ -1,4 +1,4 @@
-package com.wateralert.rest;
+package com.opstarttechbazar.rest;
 
 import java.sql.Connection;
 import java.sql.Date;
