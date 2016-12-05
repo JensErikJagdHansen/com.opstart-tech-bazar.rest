@@ -1,4 +1,4 @@
-# com.datacapture.rest
+# com.opsstrattechbazar.rest
 Pandora Data Capture
 
 # How to install in ECLIPSE
