@@ -1,4 +1,4 @@
-package com.opsstrattechbazar.rst;
+package com.opsstrattechbazar.rest;
 
 // Version 2016.12.05 14.30
 

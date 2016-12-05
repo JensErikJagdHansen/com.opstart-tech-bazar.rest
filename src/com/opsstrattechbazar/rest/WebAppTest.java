@@ -1,4 +1,4 @@
-package com.opsstrattechbazar.rst;
+package com.opsstrattechbazar.rest;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
