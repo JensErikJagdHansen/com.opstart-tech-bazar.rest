@@ -31,17 +31,14 @@ public class WebApp {
 	// Updates users position
 	private static final String strSQL_insert_beacon_log =  "Insert Into [110_Beacon_scan] Values (?,?,?, ?,?,?, ?, getutcdate() )";
 	private static final String strSQL_delete_user_position = "delete from [210_UserPosition] where UserID = ? ";
-//	private static final String strSQL_insert_user_position  = "Insert into [210_UserPosition] (UUID, Major, Count_Beacons, RSSI_Sum, UserID, UTCDateTime)  Select top 1 [UUID], Major, count(Minor) as Count_Beacons, log(sum(exp(RSSI))) as RSSI_Sum, UserID, getUTCDate() FROM [opsstrattechbazar].[dbo].[110_Beacon_scan] where UserID = ? group by UUID, Major, UserID order by  RSSI_Sum ";
-	private static final String strSQL_update_building = "UPDATE [210_UserPosition]   SET [210_UserPosition].Building = [010_BeaconRegions].[Building],  	 [210_UserPosition].Floor =    [010_BeaconRegions].[Floor] from  [010_BeaconRegions] inner join [210_UserPosition] on [210_UserPosition].Major = [010_BeaconRegions].Major AND [010_BeaconRegions].UUID = [210_UserPosition].UUID Where UserID =  ? "; 
 
 	private static final String strSQL_insert_user_position  = "Insert into [210_UserPosition] (UUID, Major, Count_Beacons, RSSI_Sum, UserID, Building, Floor, UTCDateTime)  select ? ,? , ?, ?,?,?,?, getUTCDate()";  
-	private static final String strSQL_select_position = "Select top 1 [UUID], Major, count(Minor) as Count_Beacons, log(sum(exp(RSSI))) as RSSI_Sum, UserID, getUTCDate() FROM [opsstrattechbazar].[dbo].[110_Beacon_scan] where UserID = ? group by UUID, Major, UserID order by  RSSI_Sum ";
+	private static final String strSQL_select_position = "Select top 1 [UUID], Major, 1 as Count_Beacons, RSSI as RSSI_Sum, UserID, getUTCDate() FROM [opsstrattechbazar].[dbo].[110_Beacon_scan] where UserID = ? order by RSSI_sum desc ";  //group by UUID, Major, UserID order by RSSI_Sum desc ";
 	private static final String strSQL_get_building = "select *   from [010_BeaconRegions]  where UUID= ?  and Major = ?";
-	
-	
 
 	private static final String strSQL_delete_beacon_log =  "delete from [110_Beacon_scan] where UserID = ? ";
-	private static final String strSQL_Regions =  "select *  from [010_BeaconRegions]";
+
+	private static final String strSQL_Regions =  "select * from [010_BeaconRegions]";
 
 	private static final String strSQL_add_beacon = "Insert Into [020_Beacons] (UUID, Major, Minor) ?,?,?";
 	
@@ -75,7 +72,7 @@ public class WebApp {
 	public Response log_data_a(String strLogData) throws Exception { 
 
 		
-		String strUserID = "JEH";
+		String strUserID = "Android";
 		
 		// Parse the string to json object
 		JSONArray ja_LogData = new JSONArray(strLogData);
@@ -87,6 +84,8 @@ public class WebApp {
 		
 		for (int i = 0; i <  ja_LogData.length(); i++) {
 				jo=ja_LogData.getJSONObject(i);
+				strUserID = jo.optString("UserID");
+				if (strUserID.length()==0) strUserID = "Android"; 
 				JSONHelper.json_db("e", strSQL_insert_beacon_log ,7, 																	
 																	jo.get("UUID/Namespace"),
 																	jo.opt("Major/Instance"),
@@ -94,8 +93,10 @@ public class WebApp {
 																	jo.opt("RSSI"),
 																	jo.opt("TX"),
 																	jo.opt("Distance"),
-																	strUserID); 
+																	jo.opt("UserID")); 
+				
 		}
+		
 		
 
 		JSONHelper.json_db("e", strSQL_delete_user_position ,1,strUserID);
@@ -124,7 +125,6 @@ public class WebApp {
 		
 		return Response.ok("test").build();
 	}
-
 	
 	
 	
