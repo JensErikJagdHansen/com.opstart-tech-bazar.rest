@@ -73,6 +73,9 @@ public class WebApp {
 
 		JSONArray ja_LogData = new JSONArray();
 		String strUserID;
+		String fldUUID;
+		String fldMajor;
+		
 		
 		strLogData.trim();
 		if( strLogData.charAt(0) == '{')
@@ -80,12 +83,18 @@ public class WebApp {
 			JSONObject j = new  JSONObject(strLogData);	
 			strUserID = j.optString("UserID");
 			ja_LogData = j.optJSONArray("LogData");
+			fldUUID = "UUID";
+			fldMajor = "Major";
 
 		}
 		else
 		{
 			ja_LogData = new JSONArray(strLogData);
 			strUserID ="Android";
+			fldUUID = "UUID/Namespace";
+			fldMajor = "Major/Instance";
+
+			
 		}
 		
 
@@ -95,16 +104,18 @@ public class WebApp {
 		
 		for (int i = 0; i <  ja_LogData.length(); i++) {
 				jo=ja_LogData.getJSONObject(i);
+				
+				
 		 
 				JSONHelper.json_db("e", strSQL_insert_beacon_log ,7, 																	
-																	jo.get("UUID/Namespace"),
-																	jo.opt("Major/Instance"),
+																	jo.opt(fldUUID),
+																	jo.opt(fldMajor),
 																	jo.opt("Minor"),
 																	jo.opt("RSSI"),
 																	jo.opt("TX"),
 																	jo.opt("Distance"),
 																	strUserID); 
-				
+
 		}
 		
 		
@@ -113,7 +124,10 @@ public class WebApp {
 
 		
 		JSONArray ja_position = JSONHelper.json_db("q", strSQL_select_position ,1,strUserID);
-		if (ja_position.length()==0) return Response.ok("test").build(); 
+		if (ja_position.length()==0) 
+			 {
+				return Response.ok("test").build();
+			 }
 
 		String  UUID 			= ja_position.getJSONObject(0).getString("UUID");
 		Integer Major 	   		= ja_position.getJSONObject(0).getInt("Major");
@@ -135,8 +149,7 @@ public class WebApp {
 		
 		return Response.ok("test").build();
 	}
-	
-	
+		
 	
 	@Path("/add")
 	@POST
