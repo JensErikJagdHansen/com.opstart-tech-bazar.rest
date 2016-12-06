@@ -71,21 +71,31 @@ public class WebApp {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response log_data_a(String strLogData) throws Exception { 
 
+		JSONArray ja_LogData = new JSONArray();
+		String strUserID;
 		
-		String strUserID = "Android";
+		strLogData.trim();
+		if( strLogData.charAt(0) == '{')
+		{	// Assume from IOS scanner
+			JSONObject j = new  JSONObject(strLogData);	
+			strUserID = j.optString("UserID");
+			ja_LogData = j.optJSONArray("LogData");
+
+		}
+		else
+		{
+			ja_LogData = new JSONArray(strLogData);
+			strUserID ="Android";
+		}
 		
-		// Parse the string to json object
-		JSONArray ja_LogData = new JSONArray(strLogData);
 
 		//System.out.println(ja_LogData.toString(1));
 		
 		JSONObject jo = new JSONObject();
 		
-		
 		for (int i = 0; i <  ja_LogData.length(); i++) {
 				jo=ja_LogData.getJSONObject(i);
-				strUserID = jo.optString("UserID");
-				if (strUserID.length()==0) strUserID = "Android"; 
+		 
 				JSONHelper.json_db("e", strSQL_insert_beacon_log ,7, 																	
 																	jo.get("UUID/Namespace"),
 																	jo.opt("Major/Instance"),
@@ -93,7 +103,7 @@ public class WebApp {
 																	jo.opt("RSSI"),
 																	jo.opt("TX"),
 																	jo.opt("Distance"),
-																	jo.opt("UserID")); 
+																	strUserID); 
 				
 		}
 		
