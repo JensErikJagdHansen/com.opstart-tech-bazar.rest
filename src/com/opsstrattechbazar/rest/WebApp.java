@@ -34,13 +34,13 @@ public class WebApp {
 
 	private static final String strSQL_insert_user_position  = "Insert into [210_UserPosition] (UUID, Major, Count_Beacons, RSSI_Sum, UserID, Building, Floor, UTCDateTime)  select ? ,? , ?, ?,?,?,?, getUTCDate()";  
 	
-	private static final String strSQL_select_position = "Select [UUID], Major, RSSI, UserID, getUTCDate() FROM   [opsstrattechbazar].[dbo].[110_Beacon_scan] where datediff(SECOND,UTCDateTime, getUTCDate()) < 30 order by UserID, RSSI desc";
+	private static final String strSQL_select_position = "Select [UUID], Major, RSSI, UserID, getUTCDate() FROM   [opsstrattechbazar].[dbo].[110_Beacon_scan] where datediff(SECOND,UTCDateTime, getUTCDate()) < ? order by UserID, RSSI desc";
 
 	  
 	
 	private static final String strSQL_get_building = "select *   from [010_BeaconRegions]  where UUID= ?  and Major = ?";
 
-	private static final String strSQL_delete_beacon_log =  "delete from [110_Beacon_scan] where datediff(SECOND,UTCDateTime, getUTCDate()) <30 ";
+	private static final String strSQL_delete_beacon_log =  "delete from [110_Beacon_scan] where datediff(SECOND,UTCDateTime, getUTCDate()) < ? ";
 
 	private static final String strSQL_Regions =  "select * from [010_BeaconRegions]";
 
@@ -202,7 +202,7 @@ public class WebApp {
 		if (intRunning == 1) { 	return Response.ok("Auto-update already running").build();}
 		
 		// Calculated the seconds between updats 
-		Integer interval_seconds = (int) (60 * ja.getJSONObject(0).getDouble("Update_Frequency"));
+		Integer interval_seconds = (int) ( ja.getJSONObject(0).getDouble("Update_Frequency"));
 		
 		// Find current time and calculate day time into seconds
 		Calendar rightNow = Calendar.getInstance();
@@ -252,8 +252,12 @@ public class WebApp {
 
 		//delete all loged position position
 		JSONHelper.json_db("e", strSQL_delete_user_position,0);
+
+		JSONArray ja = JSONHelper.json_db("q", strSQL_get_status_current, 0);
+	
+		Integer intLag= ja.getJSONObject(0).getInt("Statistics_lag"); //lag in seconds
 		
-		JSONArray ja_position = JSONHelper.json_db("q", strSQL_select_position ,0);
+		JSONArray ja_position = JSONHelper.json_db("q", strSQL_select_position ,1,intLag);
 		if (ja_position.length()==0) 
 			 {
 				return Response.ok("test").build();
@@ -270,7 +274,8 @@ public class WebApp {
 				Integer Major 	   		= ja_position.getJSONObject(i).getInt("Major");
 				Double  RSSI_Sum		= ja_position.getJSONObject(i).getDouble("RSSI");
 				Integer Count_Beacons	=1;
-
+				strUserID = UserID;
+				
 				JSONArray ja_building =  JSONHelper.json_db("q", strSQL_get_building ,2,UUID, Major); 
 				
 				if (ja_building.length()>0) 
@@ -284,7 +289,7 @@ public class WebApp {
 		}
 
 		// delete old records
-//		JSONHelper.json_db("e", strSQL_delete_beacon_log ,0);
+		JSONHelper.json_db("e", strSQL_delete_beacon_log ,1, intLag);
 
 		
 		JSONHelper.json_db("e", strSQL_TrackUsers, 0);
