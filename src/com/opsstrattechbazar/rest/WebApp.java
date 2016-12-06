@@ -34,7 +34,7 @@ public class WebApp {
 
 	private static final String strSQL_insert_user_position  = "Insert into [210_UserPosition] (UUID, Major, Count_Beacons, RSSI_Sum, UserID, Building, Floor, UTCDateTime)  select ? ,? , ?, ?,?,?,?, getUTCDate()";  
 	
-	private static final String strSQL_select_position = "Select [UUID], Major, RSSI, UserID, getUTCDate() FROM   [opsstrattechbazar].[dbo].[110_Beacon_scan] where datediff(SECOND,UTCDateTime, getUTCDate()) <30 order by UserID, RSSI desc";
+	private static final String strSQL_select_position = "Select [UUID], Major, RSSI, UserID, getUTCDate() FROM   [opsstrattechbazar].[dbo].[110_Beacon_scan] where datediff(SECOND,UTCDateTime, getUTCDate()) < 30 order by UserID, RSSI desc";
 
 	  
 	
@@ -249,8 +249,6 @@ public class WebApp {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response set_statistics() throws Exception { 
 	
-	
-		JSONArray ja = new JSONArray();
 
 		//delete all loged position position
 		JSONHelper.json_db("e", strSQL_delete_user_position,0);
