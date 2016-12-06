@@ -93,7 +93,6 @@ public class WebApp {
 			strUserID ="Android";
 			fldUUID = "UUID/Namespace";
 			fldMajor = "Major/Instance";
-
 			
 		}
 		
@@ -112,8 +111,8 @@ public class WebApp {
 																	jo.opt(fldMajor),
 																	jo.opt("Minor"),
 																	jo.opt("RSSI"),
-																	jo.opt("TX"),
-																	jo.opt("Distance"),
+																	0,
+																	0,
 																	strUserID); 
 
 		}
@@ -121,7 +120,6 @@ public class WebApp {
 		
 
 		JSONHelper.json_db("e", strSQL_delete_user_position ,1,strUserID);
-
 		
 		JSONArray ja_position = JSONHelper.json_db("q", strSQL_select_position ,1,strUserID);
 		if (ja_position.length()==0) 
@@ -137,15 +135,16 @@ public class WebApp {
 		
 		JSONArray ja_building =  JSONHelper.json_db("q", strSQL_get_building ,2,UUID, Major); 
 		
-		String Building 		= ja_building.getJSONObject(0).getString("Building");
-		String Floor 			= ja_building.getJSONObject(0).getString("Floor");
-		
-		JSONHelper.json_db("e", strSQL_insert_user_position ,7 , UUID, Major, Count_Beacons, RSSI_Sum, UserID,Building, Floor);		
-		
-//		JSONHelper.json_db("e", strSQL_insert_user_position ,1,strUserID);
-//		JSONHelper.json_db("e", strSQL_update_building ,1,strUserID);
-		
+		if (ja_building.length()>0) 
+		 {
+			String Building 		= ja_building.getJSONObject(0).getString("Building");
+			String Floor 			= ja_building.getJSONObject(0).getString("Floor");
+			JSONHelper.json_db("e", strSQL_insert_user_position ,7 , UUID, Major, Count_Beacons, RSSI_Sum, UserID,Building, Floor);		
+		 }
+
+
 		JSONHelper.json_db("e", strSQL_delete_beacon_log ,1,strUserID);
+
 		
 		return Response.ok("test").build();
 	}
