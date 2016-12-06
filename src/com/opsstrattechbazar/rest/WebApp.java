@@ -31,12 +31,17 @@ public class WebApp {
 	// Updates users position
 	private static final String strSQL_insert_beacon_log =  "Insert Into [110_Beacon_scan] Values (?,?,?, ?,?,?, ?, getutcdate() )";
 	private static final String strSQL_delete_user_position = "delete from [210_UserPosition] where UserID = ? ";
-	private static final String strSQL_insert_user_position  = "Insert into [210_UserPosition] (UUID, Major, Count_Beacons, RSSI_Sum, UserID, UTCDateTime)  Select top 1 [UUID], Major, count(Minor) as Count_Beacons, log(sum(exp(RSSI))) as RSSI_Sum, UserID, getUTCDate() FROM [opsstrattechbazar].[dbo].[110_Beacon_scan] where UserID = ? group by UUID, Major, UserID order by  RSSI_Sum ";
-	
+//	private static final String strSQL_insert_user_position  = "Insert into [210_UserPosition] (UUID, Major, Count_Beacons, RSSI_Sum, UserID, UTCDateTime)  Select top 1 [UUID], Major, count(Minor) as Count_Beacons, log(sum(exp(RSSI))) as RSSI_Sum, UserID, getUTCDate() FROM [opsstrattechbazar].[dbo].[110_Beacon_scan] where UserID = ? group by UUID, Major, UserID order by  RSSI_Sum ";
 	private static final String strSQL_update_building = "UPDATE [210_UserPosition]   SET [210_UserPosition].Building = [010_BeaconRegions].[Building],  	 [210_UserPosition].Floor =    [010_BeaconRegions].[Floor] from  [010_BeaconRegions] inner join [210_UserPosition] on [210_UserPosition].Major = [010_BeaconRegions].Major AND [010_BeaconRegions].UUID = [210_UserPosition].UUID Where UserID =  ? "; 
+
+	private static final String strSQL_insert_user_position  = "Insert into [210_UserPosition] (UUID, Major, Count_Beacons, RSSI_Sum, UserID, Building, Floor, UTCDateTime)  select ? ,? , ?, ?,?,?,?, getUTCDate()";  
+	private static final String strSQL_select_position = "Select top 1 [UUID], Major, count(Minor) as Count_Beacons, log(sum(exp(RSSI))) as RSSI_Sum, UserID, getUTCDate() FROM [opsstrattechbazar].[dbo].[110_Beacon_scan] where UserID = ? group by UUID, Major, UserID order by  RSSI_Sum ";
+	private static final String strSQL_get_building = "select *   from [010_BeaconRegions]  where UUID= ?  and Major = ?";
 	
+	
+
 	private static final String strSQL_delete_beacon_log =  "delete from [110_Beacon_scan] where UserID = ? ";
-	private static final String strSQL_Regions =  "select from 010_BeaconRegions";
+	private static final String strSQL_Regions =  "select *  from [010_BeaconRegions]";
 
 	private static final String strSQL_add_beacon = "Insert Into [020_Beacons] (UUID, Major, Minor) ?,?,?";
 	
@@ -92,17 +97,34 @@ public class WebApp {
 																	strUserID); 
 		}
 		
-		
 
 		JSONHelper.json_db("e", strSQL_delete_user_position ,1,strUserID);
-		JSONHelper.json_db("e", strSQL_insert_user_position ,1,strUserID);
-		JSONHelper.json_db("e", strSQL_update_building ,1,strUserID);
+
+		
+		JSONArray ja_position = JSONHelper.json_db("q", strSQL_select_position ,1,strUserID);
+		if (ja_position.length()==0) return Response.ok("test").build(); 
+
+		String  UUID 			= ja_position.getJSONObject(0).getString("UUID");
+		Integer Major 	   		= ja_position.getJSONObject(0).getInt("Major");
+		Integer Count_Beacons 	= ja_position.getJSONObject(0).getInt("Count_Beacons");
+		Double  RSSI_Sum		= ja_position.getJSONObject(0).getDouble("RSSI_Sum");
+		String UserID			= ja_position.getJSONObject(0).getString("UserID");
+		
+		JSONArray ja_building =  JSONHelper.json_db("q", strSQL_get_building ,2,UUID, Major); 
+		
+		String Building 		= ja_building.getJSONObject(0).getString("Building");
+		String Floor 			= ja_building.getJSONObject(0).getString("Floor");
+		
+		JSONHelper.json_db("e", strSQL_insert_user_position ,7 , UUID, Major, Count_Beacons, RSSI_Sum, UserID,Building, Floor);		
+		
+//		JSONHelper.json_db("e", strSQL_insert_user_position ,1,strUserID);
+//		JSONHelper.json_db("e", strSQL_update_building ,1,strUserID);
+		
 		JSONHelper.json_db("e", strSQL_delete_beacon_log ,1,strUserID);
 		
 		return Response.ok("test").build();
 	}
 
-	
 	
 	
 	
