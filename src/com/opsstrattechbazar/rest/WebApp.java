@@ -30,13 +30,17 @@ public class WebApp {
 
 	// Updates users position
 	private static final String strSQL_insert_beacon_log =  "Insert Into [110_Beacon_scan] Values (?,?,?, ?,?,?, ?, getutcdate() )";
-	private static final String strSQL_delete_user_position = "delete from [210_UserPosition] where UserID = ? ";
+	private static final String strSQL_delete_user_position = "delete from [210_UserPosition] ";
 
 	private static final String strSQL_insert_user_position  = "Insert into [210_UserPosition] (UUID, Major, Count_Beacons, RSSI_Sum, UserID, Building, Floor, UTCDateTime)  select ? ,? , ?, ?,?,?,?, getUTCDate()";  
-	private static final String strSQL_select_position = "Select top 1 [UUID], Major, 1 as Count_Beacons, RSSI as RSSI_Sum, UserID, getUTCDate() FROM [opsstrattechbazar].[dbo].[110_Beacon_scan] where UserID = ? order by RSSI_sum desc ";  //group by UUID, Major, UserID order by RSSI_Sum desc ";
+	
+	private static final String strSQL_select_position = "Select [UUID], Major, RSSI, UserID, getUTCDate() FROM   [opsstrattechbazar].[dbo].[110_Beacon_scan] where datediff(SECOND,UTCDateTime, getUTCDate()) <30 order by UserID, RSSI desc";
+
+	  
+	
 	private static final String strSQL_get_building = "select *   from [010_BeaconRegions]  where UUID= ?  and Major = ?";
 
-	private static final String strSQL_delete_beacon_log =  "delete from [110_Beacon_scan] where UserID = ? ";
+	private static final String strSQL_delete_beacon_log =  "delete from [110_Beacon_scan] where datediff(SECOND,UTCDateTime, getUTCDate()) <30 ";
 
 	private static final String strSQL_Regions =  "select * from [010_BeaconRegions]";
 
@@ -111,40 +115,13 @@ public class WebApp {
 																	jo.opt(fldMajor),
 																	jo.opt("Minor"),
 																	jo.opt("RSSI"),
-																	0,
+																	jo.opt("TX"),
 																	0,
 																	strUserID); 
 
 		}
 		
 		
-
-		JSONHelper.json_db("e", strSQL_delete_user_position ,1,strUserID);
-		
-		JSONArray ja_position = JSONHelper.json_db("q", strSQL_select_position ,1,strUserID);
-		if (ja_position.length()==0) 
-			 {
-				return Response.ok("test").build();
-			 }
-
-		String  UUID 			= ja_position.getJSONObject(0).getString("UUID");
-		Integer Major 	   		= ja_position.getJSONObject(0).getInt("Major");
-		Integer Count_Beacons 	= ja_position.getJSONObject(0).getInt("Count_Beacons");
-		Double  RSSI_Sum		= ja_position.getJSONObject(0).getDouble("RSSI_Sum");
-		String UserID			= ja_position.getJSONObject(0).getString("UserID");
-		
-		JSONArray ja_building =  JSONHelper.json_db("q", strSQL_get_building ,2,UUID, Major); 
-		
-		if (ja_building.length()>0) 
-		 {
-			String Building 		= ja_building.getJSONObject(0).getString("Building");
-			String Floor 			= ja_building.getJSONObject(0).getString("Floor");
-			JSONHelper.json_db("e", strSQL_insert_user_position ,7 , UUID, Major, Count_Beacons, RSSI_Sum, UserID,Building, Floor);		
-		 }
-
-
-		JSONHelper.json_db("e", strSQL_delete_beacon_log ,1,strUserID);
-
 		
 		return Response.ok("test").build();
 	}
@@ -272,7 +249,45 @@ public class WebApp {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response set_statistics() throws Exception { 
 	
+	
 		JSONArray ja = new JSONArray();
+
+		//delete all loged position position
+		JSONHelper.json_db("e", strSQL_delete_user_position,0);
+		
+		JSONArray ja_position = JSONHelper.json_db("q", strSQL_select_position ,0);
+		if (ja_position.length()==0) 
+			 {
+				return Response.ok("test").build();
+			 }
+
+		String strUserID = "";
+		for (int i = 0; i <  ja_position.length(); i++) 
+		{
+			if( !ja_position.getJSONObject(i).getString("UserID").equals(strUserID))
+			{
+				
+				String  UserID			= ja_position.getJSONObject(i).getString("UserID");
+				String  UUID 			= ja_position.getJSONObject(i).getString("UUID");
+				Integer Major 	   		= ja_position.getJSONObject(i).getInt("Major");
+				Double  RSSI_Sum		= ja_position.getJSONObject(i).getDouble("RSSI");
+				Integer Count_Beacons	=1;
+
+				JSONArray ja_building =  JSONHelper.json_db("q", strSQL_get_building ,2,UUID, Major); 
+				
+				if (ja_building.length()>0) 
+				 {
+					String Building 		= ja_building.getJSONObject(0).getString("Building");
+					String Floor 			= ja_building.getJSONObject(0).getString("Floor");
+					JSONHelper.json_db("e", strSQL_insert_user_position ,7 , UUID, Major, Count_Beacons, RSSI_Sum, UserID,Building, Floor);		
+				 }
+				
+			}
+		}
+
+		// delete old records
+//		JSONHelper.json_db("e", strSQL_delete_beacon_log ,0);
+
 		
 		JSONHelper.json_db("e", strSQL_TrackUsers, 0);
 		
