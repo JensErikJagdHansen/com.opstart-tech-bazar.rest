@@ -46,6 +46,8 @@ public class WebApp {
 
 	private static final String strSQL_add_beacon = "Insert Into [020_Beacons] (UUID, Major, Minor) ?,?,?";
 	
+	private static final String strSQL_get_track = "select top 100 * from [220_UserTrack] where userID = ? order by UTCDateTime desc";
+	
 	
 	// Used to schedule statistics update
 	private static final String strSQL_statistics_control_set  =  "update [880_line_stats_control] set Update_Run_Flag =  ?";
@@ -62,7 +64,21 @@ public class WebApp {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response return_version() throws Exception {return Response.ok(strVersion).build() ;}
 
+	@Path("/track/{UserID}")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response session_logout(
+			@PathParam("UserID") String strUserID) 
+					throws Exception { 
+		return Response.ok(JSONHelper.json_db("q", strSQL_get_track, 1,strUserID).toString(1)).build();
+	}
+		
 
+
+	
+	
+	
+	
 	@Path("/BeaconRegions")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
