@@ -29,22 +29,26 @@ public class WebApp {
 	
 
 	// Updates users position
-	private static final String strSQL_insert_beacon_log =  "Insert Into [110_Beacon_scan] Values (?,?,?, ?,?,?, ?, getutcdate() )";
+	private static final String strSQL_insert_beacon_log =  "Insert Into [110_Beacon_scan] Values ( ?,?,?, ?,?,?, ?, getutcdate() )";
 	private static final String strSQL_delete_user_position = "delete from [210_UserPosition] ";
 
-	private static final String strSQL_insert_user_position  = "Insert into [210_UserPosition] (UUID, Major, Count_Beacons, RSSI_Sum, UserID, Building, Floor, UTCDateTime)  select ? ,? , ?, ?,?,?,?, getUTCDate()";  
+	private static final String strSQL_insert_user_position  = "Insert into [210_UserPosition] (UUID, Major, Minor,  UserID, Building, Floor, Room, RSSI, UTCDateTime)  select ?,?,?,?,   ?,?,?,?, getUTCDate()";  
 	
-	private static final String strSQL_select_position = "Select [UUID], Major, RSSI, UserID, getUTCDate() FROM   [opsstrattechbazar].[dbo].[110_Beacon_scan] where datediff(SECOND,UTCDateTime, getUTCDate()) < ? order by UserID, RSSI desc";
+
+	
+	
+	private static final String strSQL_select_position = "Select [UUID], Major, Minor, RSSI, UserID, getUTCDate() FROM   [opsstrattechbazar].[dbo].[110_Beacon_scan] where datediff(SECOND,UTCDateTime, getUTCDate()) < ? order by UserID, RSSI desc";
 
 	  
 	
-	private static final String strSQL_get_building = "select *   from [010_BeaconRegions]  where UUID= ?  and Major = ?";
+	private static final String strSQL_get_building = "select *   from [020_Beacons]  where UUID= ?  and Major = ? and Minor = ?";
 
 	private static final String strSQL_delete_beacon_log =  "delete from [110_Beacon_scan] where datediff(SECOND,UTCDateTime, getUTCDate()) < ? ";
 
 	private static final String strSQL_Regions =  "select * from [010_BeaconRegions]";
 
-	private static final String strSQL_add_beacon = "Insert Into [020_Beacons] (UUID, Major, Minor) ?,?,?";
+	private static final String strSQL_get_beacon = "Select * from [020_Beacons] where UUID = ? and Major=? and Minor = ?";
+	private static final String strSQL_add_beacon = "Insert Into [020_Beacons] (UUID, Major, Minor) select ?,?,?";
 	
 	private static final String strSQL_get_track = "select top 100 * from [220_UserTrack] where userID = ? order by UTCDateTime desc";
 	
@@ -55,7 +59,7 @@ public class WebApp {
 	private static final ScheduledExecutorService scheduler =  Executors.newScheduledThreadPool(1);
 	private static ScheduledFuture<?> task;
 
-	private static final String strSQL_TrackUsers = "insert into [220_UserTrack]  select UserID, UUID, Major, Building, [Floor], [RSSI_sum], [Count_Beacons], getUTCDate() as UTCDateTime  from  [210_UserPosition]"; 
+	private static final String strSQL_TrackUsers = "insert into [220_UserTrack]  select UserID, UUID, Major, Minor, Building, [Floor], Room, RSSI, getUTCDate() as UTCDateTime  from  [210_UserPosition]"; 
 	
 	
 	
@@ -75,8 +79,6 @@ public class WebApp {
 		
 
 
-	
-	
 	
 	
 	@Path("/BeaconRegions")
@@ -123,8 +125,6 @@ public class WebApp {
 		
 		for (int i = 0; i <  ja_LogData.length(); i++) {
 				jo=ja_LogData.getJSONObject(i);
-				
-				
 		 
 				JSONHelper.json_db("e", strSQL_insert_beacon_log ,7, 																	
 																	jo.opt(fldUUID),
@@ -152,12 +152,19 @@ public class WebApp {
 		// Parse the string to json object
 		JSONArray ja_LogData = new JSONArray(strLogData);
 		JSONObject jo = new JSONObject();
+		JSONArray ja = new JSONArray(strLogData);
 		
-		System.out.println(ja_LogData.toString(1));
+//		System.out.println(ja_LogData.toString(1));
 		
 		for (int i = 0; i <  ja_LogData.length(); i++) {
 				jo=ja_LogData.getJSONObject(i);
-				JSONHelper.json_db("e", strSQL_add_beacon ,3,jo.get("UUID/Namespace"),jo.opt("Major/Instance"),	jo.opt("Minor")) ;
+				String UUID= jo.optString("UUID/Namespace");
+				Integer Major = jo.optInt("Major/Instance");
+				Integer Minor = jo.optInt("Minor");
+				
+				
+				ja  = JSONHelper.json_db("q", strSQL_get_beacon,3,UUID, Major, Minor);
+				if (ja.length()==0 )	JSONHelper.json_db("e", strSQL_add_beacon ,3,UUID,Major,Minor) ;
 		}
 		return Response.ok("test").build();
 	}
@@ -288,17 +295,18 @@ public class WebApp {
 				String  UserID			= ja_position.getJSONObject(i).getString("UserID");
 				String  UUID 			= ja_position.getJSONObject(i).getString("UUID");
 				Integer Major 	   		= ja_position.getJSONObject(i).getInt("Major");
-				Double  RSSI_Sum		= ja_position.getJSONObject(i).getDouble("RSSI");
-				Integer Count_Beacons	=1;
+				Integer Minor 	   		= ja_position.getJSONObject(i).getInt("Minor");
+				Integer RSSI			= ja_position.getJSONObject(i).getInt("RSSI");
 				strUserID = UserID;
 				
-				JSONArray ja_building =  JSONHelper.json_db("q", strSQL_get_building ,2,UUID, Major); 
+				JSONArray ja_building =  JSONHelper.json_db("q", strSQL_get_building ,3,UUID, Major, Minor); 
 				
 				if (ja_building.length()>0) 
 				 {
 					String Building 		= ja_building.getJSONObject(0).getString("Building");
 					String Floor 			= ja_building.getJSONObject(0).getString("Floor");
-					JSONHelper.json_db("e", strSQL_insert_user_position ,7 , UUID, Major, Count_Beacons, RSSI_Sum, UserID,Building, Floor);		
+					String Room				= ja_building.getJSONObject(0).getString("Room");
+					JSONHelper.json_db("e", strSQL_insert_user_position ,8 , UUID, Major, Minor,  UserID,Building, Floor, Room,RSSI);		
 				 }
 				
 			}
